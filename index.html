@@ -25,8 +25,8 @@ html,body{height:100%;margin:0}
 body{background:var(--bg);color:var(--fg);font:15px/1.4 var(--font);-webkit-font-smoothing:antialiased;overflow:hidden}
 button,input{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.app{height:100%;display:grid;grid-template-columns:var(--sbw,320px) minmax(0,1fr);gap:12px;padding:12px}
-.app.nosb{grid-template-columns:0 minmax(0,1fr);gap:0}
+.app{height:100%;display:grid;grid-template-columns:minmax(0,1fr);gap:12px;padding:12px}
+.app.nosb{grid-template-columns:minmax(0,1fr)}
 .app.nosb .sb{display:none}
 .ibtn{border:0;background:var(--raise);border-radius:10px;padding:8px 12px;font-weight:600;cursor:pointer}
 .ibtn:hover,.seg button:hover{background:var(--sel)}
@@ -170,6 +170,22 @@ textarea#tab::placeholder{color:transparent}
   .sk{grid-template-columns:1fr}
 }
 
+
+.hsearch{width:min(1040px,100%);margin:-8px 0 26px}
+.hsearch input{width:100%;border:0;outline:none;background:var(--pane);color:var(--fg);border-radius:16px;padding:16px 20px;font-size:17px}
+.hsearch input:focus{box-shadow:0 0 0 2px var(--accent)}
+.hsearch input::placeholder{color:var(--muted)}
+.hres{margin-top:10px;background:var(--pane);border-radius:16px;padding:8px}
+.hres .row{padding:10px 12px}
+.hres .tag{margin-left:auto}
+#homeGrids{width:min(1040px,100%)}
+#homeGrids .grid{width:100%}
+#homeGrids .sec{width:100%}
+
+.app .sb{position:fixed;left:12px;top:12px;bottom:12px;width:min(340px,calc(100vw - 24px));z-index:30;box-shadow:0 20px 60px rgba(0,0,0,.55)}
+.scrim{position:fixed;inset:0;z-index:25;background:var(--scrim)}
+.scrim[hidden]{display:none}
+
 /* Intro screen. Always dark, whatever theme the app uses. */
 #intro{position:fixed;inset:0;z-index:100;background:#000;transition:opacity .7s ease,visibility .7s}
 #intro.out{opacity:0;visibility:hidden}
@@ -208,6 +224,7 @@ dialog::backdrop{background:var(--scrim);backdrop-filter:blur(6px)}
 <body>
 <div class="view" id="songsView" hidden>
 <div class="app" id="app">
+  <div class="scrim" id="scrim" hidden></div>
   <aside class="sb" id="sb" aria-label="Song library">
     <div class="sbh">
       <div class="brand"><h1>Practice Room</h1><div style="display:flex;gap:6px"><button class="ibtn" data-go="home" aria-label="Back to the home screen">Home</button><button class="ibtn" id="theme" aria-label="Switch light and dark">Light</button></div></div>
@@ -216,12 +233,6 @@ dialog::backdrop{background:var(--scrim);backdrop-filter:blur(6px)}
         <button role="tab" aria-selected="false" data-tab="acoustic">Acoustic</button>
       </div>
       <div class="search"><input id="q" type="search" placeholder="Search songs or artists" aria-label="Search songs or artists" autocomplete="off" spellcheck="false"><kbd id="kbd">/</kbd></div>
-      <div class="chips" id="chips">
-        <button class="chip" data-f="all" aria-pressed="true">All</button>
-        <button class="chip" data-f="notab" aria-pressed="false">Needs tab</button>
-        <button class="chip" data-f="novid" aria-pressed="false">Needs video</button>
-        <button class="chip" data-f="done" aria-pressed="false">Ready</button>
-      </div>
     </div>
     <div class="count" id="count"></div>
     <div class="list" id="list" role="listbox" aria-label="Songs"></div>
@@ -230,8 +241,11 @@ dialog::backdrop{background:var(--scrim);backdrop-filter:blur(6px)}
   </aside>
   <main class="main">
     <div class="top">
-      <button class="ibtn" id="sbtoggle" aria-label="Show or hide the song list" title="Show or hide the song list">☰</button>
+      <button class="ibtn" data-go="home" aria-label="Back to the home screen">Home</button>
+      <button class="ibtn" id="sbtoggle" aria-label="Open the song list and search" title="Song list and search (press / or Ctrl K)">☰ Songs</button>
       <div class="now"><b id="nowT"></b><span id="nowS"></span></div>
+      <button class="ibtn" id="topAdd" title="Add a song">+ Add song</button>
+      <button class="ibtn" id="delSong" hidden title="Remove this song you added">Remove</button>
       <button class="ibtn" id="prev" aria-label="Previous song">‹</button>
       <button class="ibtn" id="next" aria-label="Next song">›</button>
     </div>
@@ -272,11 +286,12 @@ dialog::backdrop{background:var(--scrim);backdrop-filter:blur(6px)}
 <div class="view" id="homeView" hidden>
   <div class="home">
     <div class="hd"><h1>Practice Room</h1><p>Pick a path.</p></div>
+    <div class="hsearch"><input id="hq" type="search" placeholder="Search songs, blues keys, jazz progressions, chords" aria-label="Search everything" autocomplete="off" spellcheck="false"><div class="hres" id="hres" hidden></div><button class="ibtn" id="homeAdd" style="margin-top:10px">+ Add a song</button></div>
+    <div id="homeGrids">
     <div class="grid" id="gridMain"></div>
     <div class="sec">Lessons</div>
     <div class="grid" id="gridLess"></div>
-    <div class="sec">Check your progress</div>
-    <div class="grid" id="gridRub"></div>
+    </div>
     <div style="margin-top:28px"><button class="ibtn" id="homeTheme">Light</button></div>
   </div>
 </div>
@@ -298,21 +313,12 @@ dialog::backdrop{background:var(--scrim);backdrop-filter:blur(6px)}
     </main>
   </div>
 </div>
-<div class="view" id="rubView" hidden>
-  <div class="pg">
-    <aside class="sb">
-      <div class="sbh"><div class="brand"><h1>Progress</h1><div style="display:flex;gap:6px"><button class="ibtn" data-go="home">Home</button></div></div></div>
-      <div class="count">Pick a style</div>
-      <div class="list" id="rbList"></div>
-    </aside>
-    <main class="main"><div class="rub" id="rbMain"></div></main>
-  </div>
-</div>
 
 <dialog id="dlg" aria-label="Add a song">
   <div class="sheet"><h3>Add a song</h3>
+    <div class="seg" id="aSeg"><button data-t="electric" aria-selected="true">Electric</button><button data-t="acoustic" aria-selected="false">Acoustic</button></div>
     <input id="aA" placeholder="Artist" aria-label="Artist" autocomplete="off"><input id="aT" placeholder="Song title" aria-label="Song title" autocomplete="off"><input id="aV" placeholder="YouTube link (optional)" aria-label="YouTube link" autocomplete="off">
-    <div class="acts"><button class="ibtn" id="aCancel">Cancel</button><button class="btn" id="aSave">Add to <span id="aTab"></span></button></div>
+    <div class="acts"><button class="ibtn" id="aCancel">Cancel</button><button class="btn" id="aSave">Add song</button></div>
   </div>
 </dialog>
 
@@ -420,9 +426,10 @@ $('#theme').onclick = () => setTheme(document.documentElement.dataset.theme==='d
 
 /* Sidebar toggle */
 const app=$('#app');
-function setSb(open){ app.classList.toggle('nosb',!open); store.set('pr.sb',open?'1':'0'); }
-setSb(store.get('pr.sb', innerWidth>900?'1':'0')==='1');
+function setSb(open){ app.classList.toggle('nosb',!open); $('#scrim').hidden=!open; if(open) setTimeout(()=>{ const i=$('#q'); i.focus(); i.select(); },0); }
+setSb(false);
 $('#sbtoggle').onclick=()=>setSb(app.classList.contains('nosb'));
+$('#scrim').onclick=()=>setSb(false);
 
 /* Render the current song */
 function render(){
@@ -440,6 +447,7 @@ function render(){
   $('#menu').open = false;
   const ta = $('#tab'); ta.value = store.get('pr.tabtext.'+key(s),''); $('#empty').hidden = !!ta.value; ta.scrollTop=0; ta.scrollLeft=0;
   renderVideo();
+  $('#delSong').hidden = sel < SONGS[tab].length;
   document.title = `${s.t} · Practice Room`;
   drawList(true);
 }
@@ -511,7 +519,7 @@ $('#fit').onclick=fitText;
 $('#tab').addEventListener('input',e=>{ const v=e.target.value; if(v) store.set('pr.tabtext.'+key(cur()),v); else store.del('pr.tabtext.'+key(cur())); $('#empty').hidden=!!v; drawList(); });
 
 /* Library list. Typing searches both tabs; empty search shows the open tab. */
-const q=$('#q'), list=$('#list'); let filter='all', rows=[], hi=-1;
+const q=$('#q'), list=$('#list'); let rows=[], hi=-1;
 function words(s){ return norm(s).split(' ').filter(Boolean); }
 function hl(text,ws){
   if(!ws.length) return esc(text);
@@ -521,23 +529,35 @@ function hl(text,ws){
   merged.forEach(([a,b])=>{ out+=esc(text.slice(i,a))+'<mark>'+esc(text.slice(a,b))+'</mark>'; i=b; });
   return out+esc(text.slice(i));
 }
+function score(title,artist,ws,qraw){
+  const tw=words(title), aw=words(artist), tn=norm(title), an=norm(artist); let sc=0;
+  for(const w of ws){
+    let b=-1;
+    if(tw.includes(w)) b=5; else if(tw.some(x=>x.startsWith(w))) b=4; else if(aw.includes(w)) b=3.5; else if(aw.some(x=>x.startsWith(w))) b=3;
+    else if(tn.includes(w)) b=1.5; else if(an.includes(w)) b=1;
+    if(b<0) return -1; sc+=b;
+  }
+  const qn=norm(qraw); if(tn===qn) sc+=8; else if(tn.startsWith(qn)) sc+=4; else if(an.startsWith(qn)) sc+=2;
+  return sc;
+}
+function fuzzy(title,artist,qraw){ const h=norm(artist+' '+title).replace(/ /g,''), n=norm(qraw).replace(/ /g,''); if(n.length<3) return false; let i=0; for(const c of h){ if(c===n[i]) i++; if(i===n.length) return true; } return false; }
 function drawList(keepScroll){
   const ws=words(q.value), scope=ws.length?['electric','acoustic']:[tab]; rows=[];
   scope.forEach(t=>songsOf(t).forEach((s,i)=>{
-    if(ws.length){ const h=norm(s.a+' '+s.t); if(!ws.every(w=>h.includes(w))) return; }
-    const ht=hasTab(t,s), hv=hasVid(t,s);
-    if(filter==='notab'&&ht) return; if(filter==='novid'&&hv) return; if(filter==='done'&&!(ht&&hv)) return;
-    rows.push({t,i,s,ht,hv});
+    let sc=0;
+    if(ws.length){ sc=score(s.t,s.a,ws,q.value); if(sc<0) return; if(t===tab) sc+=.5; }
+    rows.push({t,i,s,ht:hasTab(t,s),hv:hasVid(t,s),sc});
   }));
+  if(ws.length&&!rows.length){ scope.forEach(t=>songsOf(t).forEach((s,i)=>{ if(fuzzy(s.t,s.a,q.value)) rows.push({t,i,s,ht:hasTab(t,s),hv:hasVid(t,s),sc:0}); })); }
+  if(ws.length) rows.sort((a,b)=>b.sc-a.sc||a.i-b.i);
   hi=Math.min(hi,rows.length-1);
-  const total=songsOf(tab).length, done=songsOf(tab).filter(s=>hasTab(tab,s)&&hasVid(tab,s)).length;
-  $('#count').textContent = ws.length ? `${rows.length} match${rows.length===1?'':'es'} in all songs` : `${rows.length} of ${total} songs · ${done} ready`;
+  $('#count').textContent = ws.length ? `${rows.length} match${rows.length===1?'':'es'} in all songs` : `${rows.length} songs`;
   list.innerHTML = rows.length ? rows.map((r,k)=>`<button class="row${k===hi?' hi':''}" role="option" data-k="${k}" aria-current="${r.t===tab&&r.i===sel}"><span class="n">${r.i+1}</span><span class="tx"><b>${hl(r.s.t,ws)}</b><span class="s">${hl(r.s.a,ws)}${r.s.v?' · '+esc(r.s.v):''}</span></span>${ws.length&&r.t!==tab?`<span class="tag">${TABNAME[r.t]}</span>`:''}<span class="dots"><i class="dot t${r.ht?' on':''}" title="${r.ht?'Tab saved':'No tab yet'}"></i><i class="dot v${r.hv?' on':''}" title="${r.hv?'Video saved':'No video yet'}"></i></span></button>`).join('')
-    : `<div class="none">${ws.length?`No songs match "${esc(q.value)}".<br><br><button class="btn alt" id="addFromSearch">Add it as a new song</button>`:'Nothing here. Try another filter.'}</div>`;
+    : `<div class="none">${ws.length?`No songs match "${esc(q.value)}".<br><br><button class="btn alt" id="addFromSearch">Add it as a new song</button>`:'Nothing here.'}</div>`;
   if(!keepScroll||true){ const c=list.querySelector('[aria-current="true"]'); if(c&&!ws.length&&keepScroll) c.scrollIntoView({block:'center'}); }
   const a=$('#addFromSearch'); if(a) a.onclick=()=>openAdd(q.value);
 }
-function pickRow(k){ const r=rows[k]; if(!r) return; if(r.t!==tab){ setTab(r.t,r.i); } else select(r.i); q.value=''; hi=-1; drawList(true); if(innerWidth<=900) setSb(false); }
+function pickRow(k){ const r=rows[k]; if(!r) return; if(r.t!==tab){ setTab(r.t,r.i); } else select(r.i); q.value=''; hi=-1; drawList(true); setSb(false); }
 list.addEventListener('click',e=>{ const b=e.target.closest('.row'); if(b) pickRow(parseInt(b.dataset.k,10)); });
 q.addEventListener('input',()=>{ hi=q.value.trim()?0:-1; drawList(); });
 q.addEventListener('keydown',e=>{
@@ -546,13 +566,12 @@ q.addEventListener('keydown',e=>{
   else if(e.key==='Enter'){ e.preventDefault(); pickRow(Math.max(hi,0)); q.blur(); }
   else if(e.key==='Escape'){ q.value=''; hi=-1; drawList(true); q.blur(); }
 });
-$('#chips').addEventListener('click',e=>{ const b=e.target.closest('.chip'); if(!b) return; filter=b.dataset.f; document.querySelectorAll('.chip').forEach(c=>c.setAttribute('aria-pressed',String(c===b))); hi=-1; drawList(); });
 
 function select(i){ sel=i; store.set('pr.sel.'+tab,String(i)); render(); }
 function move(d){ const n=songsOf(tab).length; select((sel+d+n)%n); }
 function setTab(t,i){ tab=t; store.set('pr.tab',t); sel=(i!==undefined)?i:(parseInt(store.get('pr.sel.'+t,'0'),10)||0); if(sel>=songsOf(t).length) sel=0; store.set('pr.sel.'+t,String(sel));
-  document.querySelectorAll('.seg button').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===t))); q.value=''; render(); }
-document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>setTab(b.dataset.tab)));
+  document.querySelectorAll('.seg button[data-tab]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.tab===t))); q.value=''; render(); }
+document.querySelectorAll('.seg button[data-tab]').forEach(b=>b.addEventListener('click',()=>setTab(b.dataset.tab)));
 $('#prev').onclick=()=>move(-1); $('#next').onclick=()=>move(1);
 document.addEventListener('keydown',e=>{
   const tg=document.activeElement.tagName, typing=/INPUT|TEXTAREA/.test(tg);
@@ -563,15 +582,22 @@ document.addEventListener('keydown',e=>{
 
 /* Add a song */
 const dlg=$('#dlg');
-function openAdd(prefill){ $('#aTab').textContent=TABNAME[tab]; $('#aA').value=''; $('#aT').value=prefill||''; $('#aV').value=''; dlg.showModal(); $('#aA').focus(); }
+let addTab='electric';
+function setAddTab(t){ addTab=t; document.querySelectorAll('#aSeg button').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.t===t))); }
+document.querySelectorAll('#aSeg button').forEach(b=>b.onclick=()=>setAddTab(b.dataset.t));
+function openAdd(prefill){ setAddTab(tab); $('#aA').value=''; $('#aT').value=prefill||''; $('#aV').value=''; dlg.showModal(); $('#aA').focus(); }
 $('#addSong').onclick=()=>openAdd('');
+$('#topAdd').onclick=()=>openAdd('');
+$('#delSong').onclick=()=>{ const b=$('#delSong'); if(b.dataset.arm==='1'){ const s=cur(), k=key(s); custom=custom.filter(c=>!(c.tab===tab&&c.a===s.a&&c.t===s.t)); store.set('pr.custom',JSON.stringify(custom)); store.del('pr.tabtext.'+k); store.del('pr.vid.'+k); b.dataset.arm=''; b.textContent='Remove'; setTab(tab,0); } else { b.dataset.arm='1'; b.textContent='Sure?'; setTimeout(()=>{ b.dataset.arm=''; b.textContent='Remove'; },2500); } };
 $('#aCancel').onclick=()=>dlg.close();
 dlg.addEventListener('click',e=>{ if(e.target===dlg) dlg.close(); });
 dlg.addEventListener('keydown',e=>{ if(e.key==='Enter'&&e.target.tagName==='INPUT'){ e.preventDefault(); $('#aSave').click(); } });
 $('#aSave').onclick=()=>{
-  const a=$('#aA').value.trim(), t=$('#aT').value.trim(); if(!a||!t){ (a?$('#aT'):$('#aA')).focus(); return; }
-  const v=parseYT($('#aV').value); custom.push({tab,a,t,vid:v||''}); store.set('pr.custom',JSON.stringify(custom)); dlg.close(); q.value='';
-  setTab(tab,songsOf(tab).length-1);
+  let a=$('#aA').value.trim(), t=$('#aT').value.trim();
+  if(!a&&/ [-–] /.test(t)){ const p=t.split(/ [-–] /); a=p[0].trim(); t=p.slice(1).join(' - ').trim(); }
+  if(!a||!t){ (a?$('#aT'):$('#aA')).focus(); return; }
+  const v=parseYT($('#aV').value); custom.push({tab:addTab,a,t,vid:v||''}); store.set('pr.custom',JSON.stringify(custom)); dlg.close(); q.value='';
+  setTab(addTab,songsOf(addTab).length-1); show('songsView');
 };
 
 /* Backup and restore: tabs, video links, added songs */
@@ -603,10 +629,8 @@ div.addEventListener('keydown',e=>{ const r=parseFloat(store.get('pr.ratio','0.5
 setTab(tab,sel);
 
 
-/* ===== Home, lessons and progress rubrics ===== */
+/* ===== Home and lessons ===== */
 const LESSONS={"blues": {"name": "Blues", "file": "lessons/blues-progressions.pdf", "find": " blues backing track", "items": [{"p": 1, "t": "Blues in E", "s": "12 bars and chord shapes"}, {"p": 2, "t": "Blues in E", "s": "Scales"}, {"p": 3, "t": "Blues in A", "s": "12 bars and chord shapes"}, {"p": 4, "t": "Blues in A", "s": "Scales"}, {"p": 5, "t": "Blues in D", "s": "12 bars and chord shapes"}, {"p": 6, "t": "Blues in D", "s": "Scales"}, {"p": 7, "t": "Blues in G", "s": "12 bars and chord shapes"}, {"p": 8, "t": "Blues in G", "s": "Scales"}, {"p": 9, "t": "Blues in C", "s": "12 bars and chord shapes"}, {"p": 10, "t": "Blues in C", "s": "Scales"}, {"p": 11, "t": "Blues in F", "s": "12 bars and chord shapes"}, {"p": 12, "t": "Blues in F", "s": "Scales"}, {"p": 13, "t": "Blues in B♭", "s": "12 bars and chord shapes"}, {"p": 14, "t": "Blues in B♭", "s": "Scales"}, {"p": 15, "t": "Minor blues in A minor", "s": "12 bars and chord shapes"}, {"p": 16, "t": "Minor blues in A minor", "s": "Scales"}, {"p": 17, "t": "Jazz blues in F", "s": "12 bars and chord shapes"}, {"p": 18, "t": "Jazz blues in F", "s": "Scales"}]}, "jazz": {"name": "Jazz", "file": "lessons/jazz-progressions.pdf", "find": " jazz backing track", "items": [{"p": 1, "t": "The ii–V–I in all 12 keys", "s": "Chart of every key"}, {"p": 2, "t": "Major ii–V–I", "s": "Root on the 6th string"}, {"p": 3, "t": "Major ii–V–I", "s": "Root on the 5th string"}, {"p": 4, "t": "Minor ii–V–i", "s": "Root on the 6th string"}, {"p": 5, "t": "Minor ii–V–i", "s": "Root on the 5th string"}, {"p": 6, "t": "I–VI7–ii–V turnaround", "s": "Root on the 6th string"}, {"p": 7, "t": "I–VI7–ii–V turnaround", "s": "Root on the 5th string"}, {"p": 8, "t": "iii–VI7–ii–V–I", "s": "Root on the 6th string"}, {"p": 9, "t": "iii–VI7–ii–V–I", "s": "Root on the 5th string"}, {"p": 10, "t": "Tritone substitution: ii–♭II7–I", "s": "Root on the 6th string"}, {"p": 11, "t": "Tritone substitution: ii–♭II7–I", "s": "Root on the 5th string"}, {"p": 12, "t": "Passing diminished: I–♯I°7–ii–V", "s": "Root on the 6th string"}, {"p": 13, "t": "Passing diminished: I–♯I°7–ii–V", "s": "Root on the 5th string"}, {"p": 14, "t": "Backdoor ii–V: iv–♭VII7–I", "s": "Root on the 6th string"}, {"p": 15, "t": "Backdoor ii–V: iv–♭VII7–I", "s": "Root on the 5th string"}, {"p": 16, "t": "Major and minor ii–V–I together", "s": "Root on the 6th string"}, {"p": 17, "t": "Major and minor ii–V–I together", "s": "Root on the 5th string"}]}, "chords": {"name": "Chord shapes", "file": "lessons/chord-shapes.pdf", "find": " chord progression backing track", "items": [{"p": 1, "t": "C major", "s": "Triads"}, {"p": 2, "t": "C major", "s": "7th chords"}, {"p": 3, "t": "G major", "s": "Triads"}, {"p": 4, "t": "G major", "s": "7th chords"}, {"p": 5, "t": "D major", "s": "Triads"}, {"p": 6, "t": "D major", "s": "7th chords"}, {"p": 7, "t": "A major", "s": "Triads"}, {"p": 8, "t": "A major", "s": "7th chords"}, {"p": 9, "t": "E major", "s": "Triads"}, {"p": 10, "t": "E major", "s": "7th chords"}, {"p": 11, "t": "B major", "s": "Triads"}, {"p": 12, "t": "B major", "s": "7th chords"}, {"p": 13, "t": "F♯ major", "s": "Triads"}, {"p": 14, "t": "F♯ major", "s": "7th chords"}, {"p": 15, "t": "D♭ major", "s": "Triads"}, {"p": 16, "t": "D♭ major", "s": "7th chords"}, {"p": 17, "t": "A♭ major", "s": "Triads"}, {"p": 18, "t": "A♭ major", "s": "7th chords"}, {"p": 19, "t": "E♭ major", "s": "Triads"}, {"p": 20, "t": "E♭ major", "s": "7th chords"}, {"p": 21, "t": "B♭ major", "s": "Triads"}, {"p": 22, "t": "B♭ major", "s": "7th chords"}, {"p": 23, "t": "F major", "s": "Triads"}, {"p": 24, "t": "F major", "s": "7th chords"}, {"p": 25, "t": "A minor", "s": "Triads"}, {"p": 26, "t": "A minor", "s": "7th chords"}, {"p": 27, "t": "E minor", "s": "Triads"}, {"p": 28, "t": "E minor", "s": "7th chords"}, {"p": 29, "t": "B minor", "s": "Triads"}, {"p": 30, "t": "B minor", "s": "7th chords"}, {"p": 31, "t": "F♯ minor", "s": "Triads"}, {"p": 32, "t": "F♯ minor", "s": "7th chords"}, {"p": 33, "t": "C♯ minor", "s": "Triads"}, {"p": 34, "t": "C♯ minor", "s": "7th chords"}, {"p": 35, "t": "G♯ minor", "s": "Triads"}, {"p": 36, "t": "G♯ minor", "s": "7th chords"}, {"p": 37, "t": "E♭ minor", "s": "Triads"}, {"p": 38, "t": "E♭ minor", "s": "7th chords"}, {"p": 39, "t": "B♭ minor", "s": "Triads"}, {"p": 40, "t": "B♭ minor", "s": "7th chords"}, {"p": 41, "t": "F minor", "s": "Triads"}, {"p": 42, "t": "F minor", "s": "7th chords"}, {"p": 43, "t": "C minor", "s": "Triads"}, {"p": 44, "t": "C minor", "s": "7th chords"}, {"p": 45, "t": "G minor", "s": "Triads"}, {"p": 46, "t": "G minor", "s": "7th chords"}, {"p": 47, "t": "D minor", "s": "Triads"}, {"p": 48, "t": "D minor", "s": "7th chords"}]}};
-const RUBRICS=[{"name": "Rock", "skills": [{"t": "Power chords", "d": "Play E5, A5 and D5 shapes and slide them up the neck cleanly, with palm muting on and off."}, {"t": "Palm muting", "d": "Chug steady eighth notes at 120 bpm with the muted strings staying quiet."}, {"t": "Barre chords", "d": "Hold E-shape and A-shape barre chords for a full bar with every string ringing."}, {"t": "Riffs", "d": "Play a classic riff along with the record at full speed."}, {"t": "Pentatonic solos", "d": "Play minor pentatonic in three positions and bend a note up to pitch."}, {"t": "Rhythm tightness", "d": "Strum eighth notes to a metronome for two minutes without drifting."}]}, {"name": "Metal", "skills": [{"t": "Alternate picking", "d": "Pick sixteenth notes at 140 bpm on one string, clean and even."}, {"t": "Palm-muted chugs", "d": "Play tight chugs on the low string and stop dead on the rests."}, {"t": "Gallop rhythm", "d": "Play the eighth-two-sixteenths gallop at 150 bpm without tiring."}, {"t": "Downpicking", "d": "Downpick steady eighth notes at 160 bpm for one minute."}, {"t": "Drop-tuned power chords", "d": "Retune to Drop D and move one-finger power chords cleanly."}, {"t": "Lead technique", "d": "Play a minor pentatonic or natural minor run using hammer-ons and pull-offs, fast and even."}]}, {"name": "Punk and pop-punk", "skills": [{"t": "Fast downstroke chords", "d": "Strum power chords with downstrokes only at 180 bpm."}, {"t": "Muted-to-open dynamics", "d": "Switch between palm-muted verses and open choruses on the beat."}, {"t": "Barre chord changes", "d": "Change between four barre chords in time without stopping."}, {"t": "Stamina", "d": "Play a full three-minute song at tempo without slowing."}, {"t": "Stops and starts", "d": "Hit every stop and restart in a song exactly on the count."}, {"t": "Simple song structure", "d": "Play verse, chorus and bridge of a song from memory."}]}, {"name": "Country", "skills": [{"t": "Boom-chicka strum", "d": "Play bass note, strum, bass note, strum with steady time on open chords."}, {"t": "Alternating bass", "d": "Alternate the root and fifth of each chord under the strum."}, {"t": "Travis picking", "d": "Play a basic Travis pattern with the thumb steady over C, G and F."}, {"t": "Major pentatonic licks", "d": "Play three country licks in the major pentatonic and join them in time."}, {"t": "Double stops and slides", "d": "Play sixths or thirds with a slide into them, in tune."}, {"t": "Nashville numbers", "d": "Play a I–IV–V song in any key you are given."}]}, {"name": "Funk", "skills": [{"t": "Sixteenth strumming", "d": "Keep a sixteenth-note strum going with muted scratches at 90 bpm."}, {"t": "Dominant 9th chords", "d": "Play E9 and A9 shapes and switch between them in time."}, {"t": "Chord stabs", "d": "Hit short stabs on the offbeats and mute them fast."}, {"t": "Single-note grooves", "d": "Play a two-bar groove from memory that stays locked to the beat."}, {"t": "Staying on the one", "d": "Land hard on beat one every bar while everything else stays light."}, {"t": "Playing with a drum loop", "d": "Play a full groove over a drum loop for two minutes without losing the one."}]}, {"name": "Reggae and ska", "skills": [{"t": "Skank", "d": "Play short offbeat chords on beats 2 and 4, muted by the left hand."}, {"t": "Top-string shapes", "d": "Play chords on the top three or four strings, clean and short."}, {"t": "One-drop feel", "d": "Leave space on beat one and keep the groove relaxed."}, {"t": "Minor and major changes", "d": "Switch between major and minor chords on the beat."}, {"t": "Ska upstrokes", "d": "Play fast offbeat upstrokes at 160 bpm."}, {"t": "Playing with a drum loop", "d": "Play a full song over a loop and keep the offbeat steady."}]}, {"name": "Folk and fingerstyle", "skills": [{"t": "Open chord changes", "d": "Change between G, C, D, Em and Am with no gaps."}, {"t": "Fingerpicking pattern", "d": "Play thumb-index-middle-ring patterns steadily through a full song."}, {"t": "Travis picking", "d": "Keep the alternating thumb steady while the fingers play melody."}, {"t": "Capo use", "d": "Move a song to a new key with the capo and play it in the new shapes."}, {"t": "Hammer-ons and pull-offs", "d": "Add them to chords and melody lines without breaking the rhythm."}, {"t": "Alternate tunings", "d": "Retune to DADGAD or open D and play a simple piece."}]}, {"name": "Soul and R&B", "skills": [{"t": "Seventh and ninth chords", "d": "Play minor 7th and dominant 9th chords and switch in time."}, {"t": "Partial chords", "d": "Play two- and three-note chord pieces on the top strings with slides."}, {"t": "Double stops", "d": "Play sixths with hammer-ons and slides between chord shapes."}, {"t": "Rhythm feel", "d": "Play a laid-back sixteenth groove at 80 bpm with clean muting."}, {"t": "Chord embellishments", "d": "Add fills between chord changes without losing the beat."}, {"t": "Playing with a track", "d": "Play along with a full soul track from start to finish."}]}, {"name": "Latin and bossa nova", "skills": [{"t": "Bossa rhythm", "d": "Play the bossa nova pattern with the thumb keeping steady bass."}, {"t": "Seventh and ninth chords", "d": "Play maj7, m7, dom7 and 9th shapes and move between them."}, {"t": "Fingerstyle control", "d": "Play bass with the thumb and chords with the fingers, evenly."}, {"t": "ii–V–I in bossa", "d": "Play a ii–V–I in three keys using the bossa rhythm."}, {"t": "Syncopation", "d": "Hold syncopated accents in time for a full song."}, {"t": "Playing a standard", "d": "Play one bossa standard from memory with its changes."}]}, {"name": "Blues", "skills": [{"t": "12-bar shuffle", "d": "Play a 12-bar blues in E and A with a steady shuffle rhythm."}, {"t": "Dominant 7th chords", "d": "Play open and barre 7th chords for I, IV and V."}, {"t": "Minor pentatonic and blues note", "d": "Play position 1 with the flat fifth added, in time."}, {"t": "Bends and vibrato", "d": "Bend a whole step to pitch and hold a steady vibrato."}, {"t": "Turnaround", "d": "Play a turnaround on the last two bars and land on the one."}, {"t": "Minor and jazz blues", "d": "Play the minor blues in A and the jazz blues in F from the lessons."}]}, {"name": "Jazz", "skills": [{"t": "Seventh-chord shapes", "d": "Play maj7, m7, dom7 and m7♭5 shapes on the 6th and 5th strings."}, {"t": "ii–V–I in three keys", "d": "Play major ii–V–I in C, F and B♭ with smooth voice leading."}, {"t": "Minor ii–V–i", "d": "Play minor ii–V–i in three keys using the m7♭5 and 7♭9 shapes."}, {"t": "Turnarounds", "d": "Play I–VI7–ii–V in time and resolve to the one."}, {"t": "Substitutions", "d": "Play a tritone substitution and a passing diminished chord in a progression."}, {"t": "Comping and soloing", "d": "Comp a progression for one chorus, then play the scale over it."}]}];
-const LV=['Not started','Learning','Solid','Ready'];
 const IC={
  electric:'<svg viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg>',
  acoustic:'<svg viewBox="0 0 24 24"><circle cx="9" cy="15" r="6"/><path d="M13.5 10.5L21 3M18 3h3v3"/><circle cx="9" cy="15" r="1.5"/></svg>',
@@ -616,7 +640,7 @@ const IC={
  rubric:'<svg viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M3.5 6l1.5 1.5L7 5M3.5 12l1.5 1.5L7 11M3.5 18l1.5 1.5L7 17"/></svg>'
 };
 const COL={electric:'#ff453a',acoustic:'#ff9f0a',blues:'#0a84ff',jazz:'#bf5af2',chords:'#30b0c7',rubric:'#30d158'};
-const views=['homeView','songsView','lessonView','rubView'];
+const views=['homeView','songsView','lessonView'];
 function show(v,arg){
   views.forEach(x=>$('#'+x).hidden=(x!==v));
   try{ history.replaceState(null,'','#'+(arg?v+':'+arg:v)); }catch(e){}
@@ -626,20 +650,16 @@ function go(name){
   if(name==='home') return show('homeView');
   if(name==='electric'||name==='acoustic'){ setTab(name); return show('songsView'); }
   if(LESSONS[name]){ openLesson(name); return; }
-  if(name==='progress'){ openRubric(store.get('pr.rb.last',RUBRICS[0].name)); return; }
 }
 document.addEventListener('click',e=>{ const g=e.target.closest('[data-go]'); if(g) go(g.dataset.go); });
-const rbGet=(st,i)=>parseInt(store.get('pr.rb.'+st+'.'+i,'0'),10)||0;
-function rbPct(st){ const r=RUBRICS.find(x=>x.name===st); const n=r.skills.length; let t=0; r.skills.forEach((k,i)=>t+=rbGet(st,i)); return Math.round(100*t/(3*n)); }
 function songStat(t){ const L=songsOf(t); return `${L.length} songs · ${L.filter(s=>hasTab(t,s)&&hasVid(t,s)).length} ready`; }
 function drawHome(){
   const card=(id,title,desc,stat,pct)=>`<button class="card" data-go="${id}"><span class="ic" style="background:${COL[id]||COL.rubric}">${IC[id]||IC.rubric}</span><b>${title}</b><span class="d">${desc}</span>${pct===undefined?'':`<div class="bar2"><i style="width:${pct}%"></i></div>`}<span class="st">${stat}</span></button>`;
   $('#gridMain').innerHTML=card('electric','Electric songs','Grunge, rock and classics. Tab on the left, video on the right.',songStat('electric'))+card('acoustic','Acoustic songs','Folk, 60s favourites and unplugged songs.',songStat('acoustic'));
   $('#gridLess').innerHTML=card('blues','Blues','12-bar blues in seven keys, plus minor and jazz blues. Chords and scales.',LESSONS.blues.items.length+' pages')+card('jazz','Jazz','ii–V–I in all keys, turnarounds, substitutions and more.',LESSONS.jazz.items.length+' pages')+card('chords','Chord shapes','Triads and 7th chords for every major and minor key.',LESSONS.chords.items.length+' pages');
-  const all=RUBRICS.reduce((a,r)=>a+rbPct(r.name),0)/RUBRICS.length;
-  $('#gridRub').innerHTML=card('progress','Style rubrics','Rate yourself on '+RUBRICS.length+' styles, from rock to bossa nova. It saves by itself.',RUBRICS.length+' styles · '+Math.round(all)+'% average',Math.round(all));
   $('#homeTheme').textContent=document.documentElement.dataset.theme==='dark'?'Light':'Dark';
 }
+$('#homeAdd').onclick=()=>openAdd('');
 $('#homeTheme').onclick=()=>{ $('#theme').click(); $('#homeTheme').textContent=document.documentElement.dataset.theme==='dark'?'Light':'Dark'; };
 
 /* Lessons: PDF viewer with a page list */
@@ -651,7 +671,7 @@ function openLesson(k,idx){
 }
 function drawLs(){
   const L=LESSONS[lsKey], ws=words($('#lsq').value);
-  lsRows=L.items.map((it,i)=>({it,i})).filter(({it})=>!ws.length||ws.every(w=>norm(it.t+' '+it.s).includes(w)));
+  lsRows=L.items.map((it,i)=>({it,i,sc:ws.length?score(it.t,it.s,ws,$('#lsq').value):0})).filter(r=>r.sc>=0); if(ws.length) lsRows.sort((a,b)=>b.sc-a.sc||a.i-b.i);
   $('#lsCount').textContent=lsRows.length+' of '+L.items.length+' pages';
   $('#lsList').innerHTML=lsRows.map(({it,i})=>`<button class="row" data-i="${i}" aria-current="${i===lsIdx}"><span class="n">${it.p}</span><span class="tx"><b>${hl(it.t,ws)}</b><span class="s">${hl(it.s,ws)}</span></span></button>`).join('')||'<div class="none">No pages match.</div>';
   const c=$('#lsList').querySelector('[aria-current="true"]'); if(c) c.scrollIntoView({block:'nearest'});
@@ -669,22 +689,33 @@ $('#lsq').addEventListener('input',drawLs);
 $('#lsPrev').onclick=()=>{ lsIdx=(lsIdx-1+LESSONS[lsKey].items.length)%LESSONS[lsKey].items.length; showPage(); };
 $('#lsNext').onclick=()=>{ lsIdx=(lsIdx+1)%LESSONS[lsKey].items.length; showPage(); };
 
-/* Rubrics */
-let rbCur=null;
-function openRubric(name){ rbCur=name; store.set('pr.rb.last',name); show('rubView'); drawRb(); }
-function drawRb(){
-  $('#rbList').innerHTML=RUBRICS.map(r=>`<button class="row" data-st="${esc(r.name)}" aria-current="${r.name===rbCur}"><span class="tx"><b>${esc(r.name)}</b><span class="s">${rbPct(r.name)}% complete</span></span></button>`).join('');
-  const r=RUBRICS.find(x=>x.name===rbCur), pct=rbPct(rbCur);
-  const link={Blues:'blues',Jazz:'jazz'}[rbCur];
-  $('#rbMain').innerHTML=`<h2>${esc(rbCur)}</h2><div class="sum">${pct}% of the way to Ready on every skill${link?` · <a href="#" data-go="${link}" style="color:var(--accent)">Open the ${esc(rbCur)} lessons</a>`:''}</div><div class="bar2" style="margin-bottom:6px"><i style="width:${pct}%"></i></div><p class="key">Not started · Learning · Solid (you can do it with some care) · Ready (you can do it in a song, at tempo)</p>`+
-   r.skills.map((k,i)=>`<div class="sk"><div><b>${esc(k.t)}</b><p>${esc(k.d)}</p></div><div class="lv" data-i="${i}">${LV.map((n,l)=>`<button data-l="${l}" aria-pressed="${rbGet(rbCur,i)===l}">${n}</button>`).join('')}</div></div>`).join('');
-}
-$('#rbList').addEventListener('click',e=>{ const b=e.target.closest('.row'); if(b){ rbCur=b.dataset.st; store.set('pr.rb.last',rbCur); drawRb(); } });
-$('#rbMain').addEventListener('click',e=>{ const b=e.target.closest('.lv button'); if(!b) return; store.set('pr.rb.'+rbCur+'.'+b.parentNode.dataset.i,b.dataset.l); drawRb(); });
 document.addEventListener('keydown',e=>{
   if(!$('#lessonView').hidden && !/INPUT|TEXTAREA/.test(document.activeElement.tagName)){ if(e.key==='ArrowRight') $('#lsNext').click(); if(e.key==='ArrowLeft') $('#lsPrev').click(); }
-  if(e.key==='Escape' && $('#homeView').hidden && !dlg.open && !/INPUT|TEXTAREA/.test(document.activeElement.tagName)) show('homeView');
+  if(e.key==='Escape' && !$('#songsView').hidden && !app.classList.contains('nosb') && !dlg.open) setSb(false);
 });
+
+/* Home search: songs on both tabs and every lesson page */
+const hq=$('#hq'), hres=$('#hres'); let hrows=[], hhi=0;
+function drawHq(){
+  const ws=words(hq.value); hrows=[];
+  if(!ws.length){ hres.hidden=true; $('#homeGrids').hidden=false; return; }
+  ['electric','acoustic'].forEach(t=>songsOf(t).forEach((s,i)=>{ const sc=score(s.t,s.a,ws,hq.value); if(sc>=0) hrows.push({sc,kind:'song',t,i,title:s.t,sub:s.a,tag:TABNAME[t]+' song'}); }));
+  Object.entries(LESSONS).forEach(([k,L])=>L.items.forEach((it,i)=>{ const sc=score(it.t,it.s,ws,hq.value); if(sc>=0) hrows.push({sc:sc-.2,kind:'lesson',k,i,title:it.t,sub:it.s,tag:L.name}); }));
+  hrows.sort((a,b)=>b.sc-a.sc); hrows=hrows.slice(0,14); hhi=Math.min(hhi,Math.max(0,hrows.length-1));
+  $('#homeGrids').hidden=true; hres.hidden=false;
+  hres.innerHTML=hrows.length?hrows.map((r,k)=>`<button class="row${k===hhi?' hi':''}" data-k="${k}"><span class="tx"><b>${hl(r.title,ws)}</b><span class="s">${hl(r.sub,ws)}</span></span><span class="tag">${esc(r.tag)}</span></button>`).join(''):`<div class="none">Nothing matches "${esc(hq.value)}".</div>`;
+}
+function openHq(k){ const r=hrows[k]; if(!r) return; hq.value=''; drawHq(); if(r.kind==='song'){ setTab(r.t,r.i); show('songsView'); } else openLesson(r.k,r.i); }
+hq.addEventListener('input',()=>{ hhi=0; drawHq(); });
+hq.addEventListener('keydown',e=>{
+  if(e.key==='ArrowDown'){ e.preventDefault(); hhi=Math.min(hhi+1,hrows.length-1); drawHq(); }
+  else if(e.key==='ArrowUp'){ e.preventDefault(); hhi=Math.max(hhi-1,0); drawHq(); }
+  else if(e.key==='Enter'){ e.preventDefault(); openHq(hhi); }
+  else if(e.key==='Escape'){ hq.value=''; drawHq(); }
+});
+hres.addEventListener('click',e=>{ const b=e.target.closest('.row'); if(b) openHq(parseInt(b.dataset.k,10)); });
+document.addEventListener('keydown',e=>{ if(!$('#homeView').hidden && e.key==='/' && document.activeElement!==hq){ e.preventDefault(); hq.focus(); } });
+
 /* Start on the home screen */
 (function(){ const h=(location.hash||'').slice(1); if(h==='songsView'){ show('songsView'); } else show('homeView'); })();
 
