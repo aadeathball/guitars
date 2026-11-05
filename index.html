@@ -127,6 +127,7 @@ dialog::backdrop{background:var(--scrim);backdrop-filter:blur(6px)}
       <button id="paste">Paste</button>
       <button id="clear">Clear</button>
       <span class="grow"></span>
+      <button id="fit" title="Shrink or grow the text so the longest line fits the pane">Fit</button>
       <button id="fsm" aria-label="Smaller text">A&minus;</button>
       <button id="fsp" aria-label="Larger text">A+</button>
     </div>
@@ -264,9 +265,18 @@ $('#openTab').onclick=()=>{
   const win=window.open(gtUrl(cur()),'tabwin',`popup=yes,left=${l},top=0,width=${w},height=${h}`);
   if(!win) window.open(gtUrl(cur()),'_blank','noopener');
 };
-let fs=parseInt(store.get('pr.fs','17'),10)||17;
-function setFs(n){ fs=Math.min(30,Math.max(11,n)); document.documentElement.style.setProperty('--fs',fs+'px'); store.set('pr.fs',String(fs)); }
+let fs=parseFloat(store.get('pr.fs','17'))||17;
+function setFs(n){ fs=Math.min(32,Math.max(6,Math.round(n*10)/10)); document.documentElement.style.setProperty('--fs',fs+'px'); store.set('pr.fs',String(fs)); }
 setFs(fs); $('#fsm').onclick=()=>setFs(fs-1); $('#fsp').onclick=()=>setFs(fs+1);
+function fitText(){
+  const ta=$('#tab'), lines=ta.value.split('\n'); if(!ta.value.trim()) return;
+  const longest=Math.max(...lines.map(l=>l.length),1);
+  const cs=getComputedStyle(ta), pad=parseFloat(cs.paddingLeft)+parseFloat(cs.paddingRight)+20;
+  const c=document.createElement('canvas').getContext('2d'); c.font='100px '+cs.fontFamily;
+  const w100=c.measureText('M'.repeat(longest)).width;
+  setFs(Math.floor(100*(ta.clientWidth-pad)/w100*10)/10);
+}
+$('#fit').onclick=fitText;
 $('#tab').addEventListener('input',e=>{ store.set('pr.tabtext.'+key(cur()),e.target.value); $('#empty').hidden=!!e.target.value; });
 
 function select(i){ sel=i; store.set('pr.sel.'+tab,String(i)); render(); }
