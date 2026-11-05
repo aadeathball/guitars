@@ -122,6 +122,54 @@ textarea#tab::placeholder{color:transparent}
 .vf .msg.ok{color:#30d158}.vf .msg.bad{color:var(--warn)}
 .vf a.sm{color:var(--accent);text-decoration:none;font-weight:600;font-size:13px}
 
+
+/* Home and paths */
+.view{height:100%}
+.home{height:100%;overflow:auto;padding:clamp(18px,4vw,48px);display:flex;flex-direction:column;align-items:center}
+.home .hd{text-align:center;margin:10px 0 28px}
+.home h1{font-size:clamp(28px,4vw,44px);margin:0;letter-spacing:-.03em}
+.home .hd p{color:var(--muted);margin:8px 0 0;font-size:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px;width:min(1040px,100%)}
+.card{background:var(--pane);border:0;border-radius:20px;padding:22px 20px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:10px;min-height:190px;position:relative;overflow:hidden;color:var(--fg)}
+.card:hover{background:var(--raise);transform:translateY(-2px)}
+.card .ic{width:54px;height:54px;border-radius:15px;display:grid;place-items:center;color:#fff}
+.card .ic svg{width:30px;height:30px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.card b{font-size:19px;letter-spacing:-.01em}
+.card span.d{color:var(--muted);font-size:14px;line-height:1.35;flex:1}
+.card .st{font-size:12.5px;color:var(--muted)}
+.bar2{height:5px;border-radius:3px;background:var(--line);overflow:hidden}
+.bar2 i{display:block;height:100%;background:#30d158;width:0}
+.sec{width:min(1040px,100%);margin:26px 0 10px;color:var(--muted);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+
+.pg{height:100%;display:grid;grid-template-columns:var(--sbw,320px) minmax(0,1fr);gap:12px;padding:12px}
+.pg .sb .brand h1{font-size:18px}
+.pg .main{min-width:0;min-height:0;display:flex;flex-direction:column;gap:10px}
+.pdf{flex:1;min-height:0;border-radius:16px;overflow:hidden;background:#fff;position:relative}
+.pdf iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.pdf .miss{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;color:#555}
+.pbtns{display:flex;gap:8px;align-items:center}
+.pbtns .grow{flex:1}
+.rub{overflow:auto;background:var(--pane);border-radius:16px;padding:20px 22px;flex:1;min-height:0}
+.rub h2{margin:0 0 4px;font-size:24px;letter-spacing:-.02em}
+.rub .sum{color:var(--muted);margin-bottom:14px;font-size:14px}
+.sk{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 16px;padding:14px 0;border-top:1px solid var(--line);align-items:center}
+.sk b{font-size:16px}
+.sk p{margin:2px 0 0;color:var(--muted);font-size:14px}
+.lv{display:flex;background:var(--raise);border-radius:10px;padding:3px}
+.lv button{border:0;background:transparent;border-radius:8px;padding:6px 11px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;white-space:nowrap}
+.lv button[aria-pressed="true"]{color:#fff}
+.lv button[data-l="1"][aria-pressed="true"]{background:#ff9f0a}
+.lv button[data-l="2"][aria-pressed="true"]{background:#0a84ff}
+.lv button[data-l="3"][aria-pressed="true"]{background:#30d158}
+.lv button[data-l="0"][aria-pressed="true"]{background:var(--pane);color:var(--fg)}
+.key{color:var(--muted);font-size:13px;margin:0 0 6px}
+@media (max-width:900px){
+  .pg{display:flex;flex-direction:column;height:auto}
+  .pg .sb{position:static;max-height:46vh;box-shadow:none}
+  .pdf{min-height:70vh;flex:none}
+  .sk{grid-template-columns:1fr}
+}
+
 /* Intro screen. Always dark, whatever theme the app uses. */
 #intro{position:fixed;inset:0;z-index:100;background:#000;transition:opacity .7s ease,visibility .7s}
 #intro.out{opacity:0;visibility:hidden}
@@ -158,10 +206,11 @@ dialog::backdrop{background:var(--scrim);backdrop-filter:blur(6px)}
 </style>
 </head>
 <body>
+<div class="view" id="songsView" hidden>
 <div class="app" id="app">
   <aside class="sb" id="sb" aria-label="Song library">
     <div class="sbh">
-      <div class="brand"><h1>Practice Room</h1><button class="ibtn" id="theme" aria-label="Switch light and dark">Light</button></div>
+      <div class="brand"><h1>Practice Room</h1><div style="display:flex;gap:6px"><button class="ibtn" data-go="home" aria-label="Back to the home screen">Home</button><button class="ibtn" id="theme" aria-label="Switch light and dark">Light</button></div></div>
       <div class="seg" role="tablist" aria-label="Guitar type">
         <button role="tab" aria-selected="true" data-tab="electric">Electric</button>
         <button role="tab" aria-selected="false" data-tab="acoustic">Acoustic</button>
@@ -216,6 +265,48 @@ dialog::backdrop{background:var(--scrim);backdrop-filter:blur(6px)}
       </section>
     </div>
   </main>
+</div>
+
+</div>
+
+<div class="view" id="homeView" hidden>
+  <div class="home">
+    <div class="hd"><h1>Practice Room</h1><p>Pick a path.</p></div>
+    <div class="grid" id="gridMain"></div>
+    <div class="sec">Lessons</div>
+    <div class="grid" id="gridLess"></div>
+    <div class="sec">Check your progress</div>
+    <div class="grid" id="gridRub"></div>
+    <div style="margin-top:28px"><button class="ibtn" id="homeTheme">Light</button></div>
+  </div>
+</div>
+<div class="view" id="lessonView" hidden>
+  <div class="pg">
+    <aside class="sb">
+      <div class="sbh">
+        <div class="brand"><h1 id="lsTitle"></h1><div style="display:flex;gap:6px"><button class="ibtn" data-go="home">Home</button></div></div>
+        <div class="search"><input id="lsq" type="search" placeholder="Search this lesson" aria-label="Search this lesson" autocomplete="off" spellcheck="false"></div>
+      </div>
+      <div class="count" id="lsCount"></div>
+      <div class="list" id="lsList"></div>
+    </aside>
+    <main class="main">
+      <div class="pbtns"><div class="now" style="flex:1;min-width:0"><b id="lsNow" style="font-size:17px"></b><div id="lsSub" style="color:var(--muted);font-size:13px"></div></div>
+        <a class="ibtn" id="lsFind" target="_blank" rel="noopener" style="text-decoration:none;color:var(--accent)">Find a backing track</a>
+        <button class="ibtn" id="lsPrev" aria-label="Previous">‹</button><button class="ibtn" id="lsNext" aria-label="Next">›</button></div>
+      <div class="pdf" id="lsPdf"></div>
+    </main>
+  </div>
+</div>
+<div class="view" id="rubView" hidden>
+  <div class="pg">
+    <aside class="sb">
+      <div class="sbh"><div class="brand"><h1>Progress</h1><div style="display:flex;gap:6px"><button class="ibtn" data-go="home">Home</button></div></div></div>
+      <div class="count">Pick a style</div>
+      <div class="list" id="rbList"></div>
+    </aside>
+    <main class="main"><div class="rub" id="rbMain"></div></main>
+  </div>
 </div>
 
 <dialog id="dlg" aria-label="Add a song">
@@ -281,8 +372,8 @@ acoustic: [
  {a:"Nick Drake", t:"Time Has Told Me", vid:"G8SmkwS82u4", sid:230677, tun:"E standard on Songsterr. Nick Drake often used altered tunings, so check the tab.", cc:1, warn:1}
 ]
 };
-SONGS.electric.push(...[{"a": "Soundgarden", "t": "Spoonman"}, {"a": "Pearl Jam", "t": "Alive"}, {"a": "Alice in Chains", "t": "Man in the Box"}, {"a": "Stone Temple Pilots", "t": "Interstate Love Song"}, {"a": "The Smashing Pumpkins", "t": "Today"}, {"a": "Rage Against the Machine", "t": "Bulls on Parade"}, {"a": "Metallica", "t": "Nothing Else Matters"}, {"a": "Red Hot Chili Peppers", "t": "Under the Bridge"}, {"a": "Green Day", "t": "Longview"}, {"a": "Radiohead", "t": "Just"}, {"a": "Oasis", "t": "Wonderwall"}, {"a": "Foo Fighters", "t": "My Hero"}, {"a": "Nirvana", "t": "Come as You Are"}, {"a": "Pearl Jam", "t": "Even Flow"}, {"a": "Soundgarden", "t": "Fell on Black Days"}, {"a": "Alice in Chains", "t": "Rooster"}, {"a": "Weezer", "t": "Buddy Holly"}, {"a": "Weezer", "t": "Say It Ain't So"}, {"a": "Pixies", "t": "Where Is My Mind?"}, {"a": "Dinosaur Jr.", "t": "Feel the Pain"}, {"a": "Sonic Youth", "t": "Teen Age Riot"}, {"a": "Jane's Addiction", "t": "Been Caught Stealing"}, {"a": "Faith No More", "t": "Epic"}, {"a": "Tool", "t": "Sober"}, {"a": "Bush", "t": "Everything Zen"}, {"a": "Silverchair", "t": "Tomorrow"}, {"a": "Live", "t": "Lightning Crashes"}, {"a": "Collective Soul", "t": "Shine"}, {"a": "Counting Crows", "t": "Mr. Jones"}, {"a": "Third Eye Blind", "t": "Semi-Charmed Life"}, {"a": "Blur", "t": "Song 2"}, {"a": "Pulp", "t": "Common People"}, {"a": "The Verve", "t": "Bitter Sweet Symphony"}, {"a": "Stereophonics", "t": "Dakota"}, {"a": "Guns N' Roses", "t": "Sweet Child o' Mine"}, {"a": "AC/DC", "t": "Back in Black"}, {"a": "Led Zeppelin", "t": "Whole Lotta Love"}, {"a": "Deep Purple", "t": "Smoke on the Water"}, {"a": "Black Sabbath", "t": "Paranoid"}, {"a": "Jimi Hendrix", "t": "Purple Haze"}, {"a": "Cream", "t": "Sunshine of Your Love"}, {"a": "The Rolling Stones", "t": "(I Can't Get No) Satisfaction"}, {"a": "The Who", "t": "Baba O'Riley"}, {"a": "The Kinks", "t": "You Really Got Me"}, {"a": "Van Halen", "t": "Panama"}, {"a": "Aerosmith", "t": "Walk This Way"}, {"a": "Queens of the Stone Age", "t": "No One Knows"}, {"a": "The White Stripes", "t": "Seven Nation Army"}, {"a": "The Strokes", "t": "Last Nite"}, {"a": "Arctic Monkeys", "t": "I Bet You Look Good on the Dancefloor"}]);
-SONGS.acoustic.push(...[{"a": "Nirvana", "t": "Polly"}, {"a": "Pearl Jam", "t": "Daughter"}, {"a": "Alice in Chains", "t": "Down in a Hole"}, {"a": "Chris Cornell", "t": "Can't Change Me"}, {"a": "Foo Fighters", "t": "Times Like These"}, {"a": "Oasis", "t": "Don't Look Back in Anger"}, {"a": "Oasis", "t": "Champagne Supernova"}, {"a": "Radiohead", "t": "No Surprises"}, {"a": "Green Day", "t": "Wake Me Up When September Ends"}, {"a": "R.E.M.", "t": "Everybody Hurts"}, {"a": "Eric Clapton", "t": "Wonderful Tonight"}, {"a": "Eric Clapton", "t": "Layla (Unplugged)"}, {"a": "Bob Marley", "t": "Redemption Song"}, {"a": "Neil Young", "t": "Heart of Gold"}, {"a": "Neil Young", "t": "Harvest Moon"}, {"a": "Bob Dylan", "t": "Knockin' on Heaven's Door"}, {"a": "Bob Dylan", "t": "Blowin' in the Wind"}, {"a": "Simon & Garfunkel", "t": "The Sound of Silence"}, {"a": "Simon & Garfunkel", "t": "Scarborough Fair"}, {"a": "The Beatles", "t": "Julia"}, {"a": "The Beatles", "t": "Dear Prudence"}, {"a": "The Beatles", "t": "Here Comes the Sun"}, {"a": "The Beatles", "t": "Norwegian Wood"}, {"a": "The Beatles", "t": "Yesterday"}, {"a": "Led Zeppelin", "t": "Going to California"}, {"a": "Led Zeppelin", "t": "Babe I'm Gonna Leave You"}, {"a": "Cat Stevens", "t": "Wild World"}, {"a": "Cat Stevens", "t": "Father and Son"}, {"a": "James Taylor", "t": "Fire and Rain"}, {"a": "James Taylor", "t": "Carolina in My Mind"}, {"a": "John Denver", "t": "Take Me Home, Country Roads"}, {"a": "Joni Mitchell", "t": "Both Sides, Now"}, {"a": "Nick Drake", "t": "Pink Moon"}, {"a": "Tom Petty", "t": "Wildflowers"}, {"a": "Tom Petty", "t": "Free Fallin'"}, {"a": "Jeff Buckley", "t": "Hallelujah"}, {"a": "Tracy Chapman", "t": "Fast Car"}, {"a": "Jack Johnson", "t": "Better Together"}, {"a": "Jason Mraz", "t": "I'm Yours"}, {"a": "Damien Rice", "t": "The Blower's Daughter"}, {"a": "Ed Sheeran", "t": "Thinking Out Loud"}, {"a": "Passenger", "t": "Let Her Go"}, {"a": "Mumford & Sons", "t": "Little Lion Man"}, {"a": "The Lumineers", "t": "Ho Hey"}, {"a": "The Wallflowers", "t": "One Headlight"}, {"a": "Counting Crows", "t": "Round Here"}, {"a": "Sixpence None the Richer", "t": "Kiss Me"}, {"a": "Natalie Imbruglia", "t": "Torn"}, {"a": "Creedence Clearwater Revival", "t": "Have You Ever Seen the Rain"}, {"a": "Van Morrison", "t": "Brown Eyed Girl"}]);
+SONGS.electric.push(...[{"a": "Soundgarden", "t": "Spoonman"}, {"a": "Pearl Jam", "t": "Alive"}, {"a": "Alice in Chains", "t": "Man in the Box"}, {"a": "Stone Temple Pilots", "t": "Interstate Love Song"}, {"a": "The Smashing Pumpkins", "t": "Today"}, {"a": "Rage Against the Machine", "t": "Bulls on Parade"}, {"a": "Metallica", "t": "Nothing Else Matters"}, {"a": "Red Hot Chili Peppers", "t": "Under the Bridge"}, {"a": "Green Day", "t": "Longview"}, {"a": "Radiohead", "t": "Just"}, {"a": "Oasis", "t": "Wonderwall"}, {"a": "Foo Fighters", "t": "My Hero"}, {"a": "Nirvana", "t": "Come as You Are"}, {"a": "Pearl Jam", "t": "Even Flow"}, {"a": "Soundgarden", "t": "Fell on Black Days"}, {"a": "Alice in Chains", "t": "Rooster"}, {"a": "Weezer", "t": "Buddy Holly"}, {"a": "Weezer", "t": "Say It Ain't So"}, {"a": "Pixies", "t": "Where Is My Mind?"}, {"a": "Dinosaur Jr.", "t": "Feel the Pain"}, {"a": "Sonic Youth", "t": "Teen Age Riot"}, {"a": "Jane's Addiction", "t": "Been Caught Stealing"}, {"a": "Faith No More", "t": "Epic"}, {"a": "Tool", "t": "Sober"}, {"a": "Bush", "t": "Everything Zen"}, {"a": "Silverchair", "t": "Tomorrow"}, {"a": "Live", "t": "Lightning Crashes"}, {"a": "Collective Soul", "t": "Shine"}, {"a": "Counting Crows", "t": "Mr. Jones"}, {"a": "Third Eye Blind", "t": "Semi-Charmed Life"}, {"a": "Blur", "t": "Song 2"}, {"a": "Pulp", "t": "Common People"}, {"a": "The Verve", "t": "Bitter Sweet Symphony"}, {"a": "Stereophonics", "t": "Dakota"}, {"a": "Guns N' Roses", "t": "Sweet Child o' Mine"}, {"a": "AC/DC", "t": "Back in Black"}, {"a": "Led Zeppelin", "t": "Whole Lotta Love"}, {"a": "Deep Purple", "t": "Smoke on the Water"}, {"a": "Black Sabbath", "t": "Paranoid"}, {"a": "Jimi Hendrix", "t": "Purple Haze"}, {"a": "Cream", "t": "Sunshine of Your Love"}, {"a": "The Rolling Stones", "t": "(I Can't Get No) Satisfaction"}, {"a": "The Who", "t": "Baba O'Riley"}, {"a": "The Kinks", "t": "You Really Got Me"}, {"a": "Van Halen", "t": "Panama"}, {"a": "Aerosmith", "t": "Walk This Way"}, {"a": "Queens of the Stone Age", "t": "No One Knows"}, {"a": "The White Stripes", "t": "Seven Nation Army"}, {"a": "The Strokes", "t": "Last Nite"}, {"a": "Arctic Monkeys", "t": "I Bet You Look Good on the Dancefloor"}, {"a": "Nirvana", "t": "Lithium"}, {"a": "Nirvana", "t": "In Bloom"}, {"a": "Soundgarden", "t": "Rusty Cage"}, {"a": "Soundgarden", "t": "Outshined"}, {"a": "Alice in Chains", "t": "Them Bones"}, {"a": "Alice in Chains", "t": "Angry Chair"}, {"a": "Stone Temple Pilots", "t": "Vasoline"}, {"a": "The Smashing Pumpkins", "t": "1979"}, {"a": "The Smashing Pumpkins", "t": "Bullet with Butterfly Wings"}, {"a": "Rage Against the Machine", "t": "Bombtrack"}, {"a": "Rage Against the Machine", "t": "Guerrilla Radio"}, {"a": "Metallica", "t": "Master of Puppets"}, {"a": "Metallica", "t": "One"}, {"a": "Red Hot Chili Peppers", "t": "Scar Tissue"}, {"a": "Red Hot Chili Peppers", "t": "Californication"}, {"a": "Green Day", "t": "When I Come Around"}, {"a": "Green Day", "t": "American Idiot"}, {"a": "Radiohead", "t": "Paranoid Android"}, {"a": "Radiohead", "t": "Airbag"}, {"a": "Foo Fighters", "t": "All My Life"}, {"a": "Foo Fighters", "t": "Learn to Fly"}, {"a": "Weezer", "t": "Island in the Sun"}, {"a": "Pixies", "t": "Debaser"}, {"a": "The Cure", "t": "Boys Don't Cry"}, {"a": "The Cure", "t": "Just Like Heaven"}, {"a": "Oasis", "t": "Some Might Say"}, {"a": "Nine Inch Nails", "t": "Closer"}, {"a": "The Offspring", "t": "Come Out and Play"}, {"a": "Blink-182", "t": "All the Small Things"}, {"a": "Sum 41", "t": "Fat Lip"}, {"a": "Linkin Park", "t": "In the End"}, {"a": "System of a Down", "t": "Chop Suey!"}, {"a": "Korn", "t": "Freak on a Leash"}, {"a": "Deftones", "t": "My Own Summer (Shove It)"}, {"a": "Muse", "t": "Hysteria"}, {"a": "Muse", "t": "Plug In Baby"}, {"a": "The Killers", "t": "Mr. Brightside"}, {"a": "Kings of Leon", "t": "Sex on Fire"}, {"a": "Franz Ferdinand", "t": "Take Me Out"}, {"a": "Royal Blood", "t": "Figure It Out"}, {"a": "AC/DC", "t": "Highway to Hell"}, {"a": "Thin Lizzy", "t": "The Boys Are Back in Town"}, {"a": "Lynyrd Skynyrd", "t": "Sweet Home Alabama"}, {"a": "ZZ Top", "t": "La Grange"}, {"a": "Free", "t": "All Right Now"}, {"a": "Dire Straits", "t": "Sultans of Swing"}, {"a": "Pink Floyd", "t": "Another Brick in the Wall (Part 2)"}, {"a": "Eric Clapton", "t": "Cocaine"}, {"a": "Jimi Hendrix", "t": "Little Wing"}, {"a": "Santana", "t": "Black Magic Woman"}]);
+SONGS.acoustic.push(...[{"a": "Nirvana", "t": "Polly"}, {"a": "Pearl Jam", "t": "Daughter"}, {"a": "Alice in Chains", "t": "Down in a Hole"}, {"a": "Chris Cornell", "t": "Can't Change Me"}, {"a": "Foo Fighters", "t": "Times Like These"}, {"a": "Oasis", "t": "Don't Look Back in Anger"}, {"a": "Oasis", "t": "Champagne Supernova"}, {"a": "Radiohead", "t": "No Surprises"}, {"a": "Green Day", "t": "Wake Me Up When September Ends"}, {"a": "R.E.M.", "t": "Everybody Hurts"}, {"a": "Eric Clapton", "t": "Wonderful Tonight"}, {"a": "Eric Clapton", "t": "Layla (Unplugged)"}, {"a": "Bob Marley", "t": "Redemption Song"}, {"a": "Neil Young", "t": "Heart of Gold"}, {"a": "Neil Young", "t": "Harvest Moon"}, {"a": "Bob Dylan", "t": "Knockin' on Heaven's Door"}, {"a": "Bob Dylan", "t": "Blowin' in the Wind"}, {"a": "Simon & Garfunkel", "t": "The Sound of Silence"}, {"a": "Simon & Garfunkel", "t": "Scarborough Fair"}, {"a": "The Beatles", "t": "Julia"}, {"a": "The Beatles", "t": "Dear Prudence"}, {"a": "The Beatles", "t": "Here Comes the Sun"}, {"a": "The Beatles", "t": "Norwegian Wood"}, {"a": "The Beatles", "t": "Yesterday"}, {"a": "Led Zeppelin", "t": "Going to California"}, {"a": "Led Zeppelin", "t": "Babe I'm Gonna Leave You"}, {"a": "Cat Stevens", "t": "Wild World"}, {"a": "Cat Stevens", "t": "Father and Son"}, {"a": "James Taylor", "t": "Fire and Rain"}, {"a": "James Taylor", "t": "Carolina in My Mind"}, {"a": "John Denver", "t": "Take Me Home, Country Roads"}, {"a": "Joni Mitchell", "t": "Both Sides, Now"}, {"a": "Nick Drake", "t": "Pink Moon"}, {"a": "Tom Petty", "t": "Wildflowers"}, {"a": "Tom Petty", "t": "Free Fallin'"}, {"a": "Jeff Buckley", "t": "Hallelujah"}, {"a": "Tracy Chapman", "t": "Fast Car"}, {"a": "Jack Johnson", "t": "Better Together"}, {"a": "Jason Mraz", "t": "I'm Yours"}, {"a": "Damien Rice", "t": "The Blower's Daughter"}, {"a": "Ed Sheeran", "t": "Thinking Out Loud"}, {"a": "Passenger", "t": "Let Her Go"}, {"a": "Mumford & Sons", "t": "Little Lion Man"}, {"a": "The Lumineers", "t": "Ho Hey"}, {"a": "The Wallflowers", "t": "One Headlight"}, {"a": "Counting Crows", "t": "Round Here"}, {"a": "Sixpence None the Richer", "t": "Kiss Me"}, {"a": "Natalie Imbruglia", "t": "Torn"}, {"a": "Creedence Clearwater Revival", "t": "Have You Ever Seen the Rain"}, {"a": "Van Morrison", "t": "Brown Eyed Girl"}, {"a": "Nirvana", "t": "All Apologies"}, {"a": "Nirvana", "t": "Something in the Way"}, {"a": "Pearl Jam", "t": "Last Kiss"}, {"a": "Alice in Chains", "t": "Heaven Beside You"}, {"a": "Foo Fighters", "t": "Walking After You"}, {"a": "Oasis", "t": "Talk Tonight"}, {"a": "Radiohead", "t": "Karma Police"}, {"a": "Radiohead", "t": "High and Dry"}, {"a": "R.E.M.", "t": "Nightswimming"}, {"a": "R.E.M.", "t": "The One I Love"}, {"a": "Eric Clapton", "t": "Change the World"}, {"a": "Eric Clapton", "t": "Bell Bottom Blues"}, {"a": "Bob Marley", "t": "Three Little Birds"}, {"a": "Bob Marley", "t": "No Woman, No Cry"}, {"a": "Neil Young", "t": "Old Man"}, {"a": "Bob Dylan", "t": "Mr. Tambourine Man"}, {"a": "Bob Dylan", "t": "Girl from the North Country"}, {"a": "Simon & Garfunkel", "t": "America"}, {"a": "Simon & Garfunkel", "t": "Homeward Bound"}, {"a": "The Beatles", "t": "While My Guitar Gently Weeps"}, {"a": "The Beatles", "t": "Let It Be"}, {"a": "The Beatles", "t": "Hey Jude"}, {"a": "The Beatles", "t": "I Will"}, {"a": "Led Zeppelin", "t": "Tangerine"}, {"a": "Led Zeppelin", "t": "Thank You"}, {"a": "Cat Stevens", "t": "Moonshadow"}, {"a": "Cat Stevens", "t": "Peace Train"}, {"a": "James Taylor", "t": "You've Got a Friend"}, {"a": "Joni Mitchell", "t": "A Case of You"}, {"a": "Joni Mitchell", "t": "Big Yellow Taxi"}, {"a": "Nick Drake", "t": "Northern Sky"}, {"a": "Tom Petty", "t": "Learning to Fly"}, {"a": "Johnny Cash", "t": "Hurt"}, {"a": "Johnny Cash", "t": "Ring of Fire"}, {"a": "Johnny Cash", "t": "Folsom Prison Blues"}, {"a": "Bill Withers", "t": "Ain't No Sunshine"}, {"a": "Bill Withers", "t": "Lean on Me"}, {"a": "Ben E. King", "t": "Stand by Me"}, {"a": "Eagles", "t": "Hotel California"}, {"a": "Eagles", "t": "Take It Easy"}, {"a": "Fleetwood Mac", "t": "Landslide"}, {"a": "Fleetwood Mac", "t": "Dreams"}, {"a": "Crosby, Stills & Nash", "t": "Teach Your Children"}, {"a": "Don McLean", "t": "American Pie"}, {"a": "Paul Simon", "t": "Graceland"}, {"a": "The Lumineers", "t": "Ophelia"}, {"a": "Ed Sheeran", "t": "Perfect"}, {"a": "Coldplay", "t": "Yellow"}, {"a": "Bon Iver", "t": "Skinny Love"}, {"a": "Fleet Foxes", "t": "White Winter Hymnal"}]);
 
 
 const $ = s => document.querySelector(s);
@@ -293,7 +384,7 @@ const store = {
   del(k){ try{ localStorage.removeItem(k) }catch(e){} }
 };
 const esc = x => String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9 ]+/g,' ').replace(/\s+/g,' ').trim();
+const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[\u266f#]/g,' sharp ').replace(/\u266d/g,' flat ').replace(/[^a-z0-9 ]+/g,' ').replace(/\s+/g,' ').trim();
 const isMac = /Mac|iPhone|iPad/.test(navigator.platform||'');
 $('#kbd').textContent = '/';
 
@@ -510,6 +601,92 @@ div.addEventListener('keydown',e=>{ const r=parseFloat(store.get('pr.ratio','0.5
   if(e.key==='ArrowLeft'){ e.preventDefault(); setRatio(r-0.02) } if(e.key==='ArrowRight'){ e.preventDefault(); setRatio(r+0.02) } if(e.key==='Home'){ setRatio(0.5) } });
 
 setTab(tab,sel);
+
+
+/* ===== Home, lessons and progress rubrics ===== */
+const LESSONS={"blues": {"name": "Blues", "file": "lessons/blues-progressions.pdf", "find": " blues backing track", "items": [{"p": 1, "t": "Blues in E", "s": "12 bars and chord shapes"}, {"p": 2, "t": "Blues in E", "s": "Scales"}, {"p": 3, "t": "Blues in A", "s": "12 bars and chord shapes"}, {"p": 4, "t": "Blues in A", "s": "Scales"}, {"p": 5, "t": "Blues in D", "s": "12 bars and chord shapes"}, {"p": 6, "t": "Blues in D", "s": "Scales"}, {"p": 7, "t": "Blues in G", "s": "12 bars and chord shapes"}, {"p": 8, "t": "Blues in G", "s": "Scales"}, {"p": 9, "t": "Blues in C", "s": "12 bars and chord shapes"}, {"p": 10, "t": "Blues in C", "s": "Scales"}, {"p": 11, "t": "Blues in F", "s": "12 bars and chord shapes"}, {"p": 12, "t": "Blues in F", "s": "Scales"}, {"p": 13, "t": "Blues in B♭", "s": "12 bars and chord shapes"}, {"p": 14, "t": "Blues in B♭", "s": "Scales"}, {"p": 15, "t": "Minor blues in A minor", "s": "12 bars and chord shapes"}, {"p": 16, "t": "Minor blues in A minor", "s": "Scales"}, {"p": 17, "t": "Jazz blues in F", "s": "12 bars and chord shapes"}, {"p": 18, "t": "Jazz blues in F", "s": "Scales"}]}, "jazz": {"name": "Jazz", "file": "lessons/jazz-progressions.pdf", "find": " jazz backing track", "items": [{"p": 1, "t": "The ii–V–I in all 12 keys", "s": "Chart of every key"}, {"p": 2, "t": "Major ii–V–I", "s": "Root on the 6th string"}, {"p": 3, "t": "Major ii–V–I", "s": "Root on the 5th string"}, {"p": 4, "t": "Minor ii–V–i", "s": "Root on the 6th string"}, {"p": 5, "t": "Minor ii–V–i", "s": "Root on the 5th string"}, {"p": 6, "t": "I–VI7–ii–V turnaround", "s": "Root on the 6th string"}, {"p": 7, "t": "I–VI7–ii–V turnaround", "s": "Root on the 5th string"}, {"p": 8, "t": "iii–VI7–ii–V–I", "s": "Root on the 6th string"}, {"p": 9, "t": "iii–VI7–ii–V–I", "s": "Root on the 5th string"}, {"p": 10, "t": "Tritone substitution: ii–♭II7–I", "s": "Root on the 6th string"}, {"p": 11, "t": "Tritone substitution: ii–♭II7–I", "s": "Root on the 5th string"}, {"p": 12, "t": "Passing diminished: I–♯I°7–ii–V", "s": "Root on the 6th string"}, {"p": 13, "t": "Passing diminished: I–♯I°7–ii–V", "s": "Root on the 5th string"}, {"p": 14, "t": "Backdoor ii–V: iv–♭VII7–I", "s": "Root on the 6th string"}, {"p": 15, "t": "Backdoor ii–V: iv–♭VII7–I", "s": "Root on the 5th string"}, {"p": 16, "t": "Major and minor ii–V–I together", "s": "Root on the 6th string"}, {"p": 17, "t": "Major and minor ii–V–I together", "s": "Root on the 5th string"}]}, "chords": {"name": "Chord shapes", "file": "lessons/chord-shapes.pdf", "find": " chord progression backing track", "items": [{"p": 1, "t": "C major", "s": "Triads"}, {"p": 2, "t": "C major", "s": "7th chords"}, {"p": 3, "t": "G major", "s": "Triads"}, {"p": 4, "t": "G major", "s": "7th chords"}, {"p": 5, "t": "D major", "s": "Triads"}, {"p": 6, "t": "D major", "s": "7th chords"}, {"p": 7, "t": "A major", "s": "Triads"}, {"p": 8, "t": "A major", "s": "7th chords"}, {"p": 9, "t": "E major", "s": "Triads"}, {"p": 10, "t": "E major", "s": "7th chords"}, {"p": 11, "t": "B major", "s": "Triads"}, {"p": 12, "t": "B major", "s": "7th chords"}, {"p": 13, "t": "F♯ major", "s": "Triads"}, {"p": 14, "t": "F♯ major", "s": "7th chords"}, {"p": 15, "t": "D♭ major", "s": "Triads"}, {"p": 16, "t": "D♭ major", "s": "7th chords"}, {"p": 17, "t": "A♭ major", "s": "Triads"}, {"p": 18, "t": "A♭ major", "s": "7th chords"}, {"p": 19, "t": "E♭ major", "s": "Triads"}, {"p": 20, "t": "E♭ major", "s": "7th chords"}, {"p": 21, "t": "B♭ major", "s": "Triads"}, {"p": 22, "t": "B♭ major", "s": "7th chords"}, {"p": 23, "t": "F major", "s": "Triads"}, {"p": 24, "t": "F major", "s": "7th chords"}, {"p": 25, "t": "A minor", "s": "Triads"}, {"p": 26, "t": "A minor", "s": "7th chords"}, {"p": 27, "t": "E minor", "s": "Triads"}, {"p": 28, "t": "E minor", "s": "7th chords"}, {"p": 29, "t": "B minor", "s": "Triads"}, {"p": 30, "t": "B minor", "s": "7th chords"}, {"p": 31, "t": "F♯ minor", "s": "Triads"}, {"p": 32, "t": "F♯ minor", "s": "7th chords"}, {"p": 33, "t": "C♯ minor", "s": "Triads"}, {"p": 34, "t": "C♯ minor", "s": "7th chords"}, {"p": 35, "t": "G♯ minor", "s": "Triads"}, {"p": 36, "t": "G♯ minor", "s": "7th chords"}, {"p": 37, "t": "E♭ minor", "s": "Triads"}, {"p": 38, "t": "E♭ minor", "s": "7th chords"}, {"p": 39, "t": "B♭ minor", "s": "Triads"}, {"p": 40, "t": "B♭ minor", "s": "7th chords"}, {"p": 41, "t": "F minor", "s": "Triads"}, {"p": 42, "t": "F minor", "s": "7th chords"}, {"p": 43, "t": "C minor", "s": "Triads"}, {"p": 44, "t": "C minor", "s": "7th chords"}, {"p": 45, "t": "G minor", "s": "Triads"}, {"p": 46, "t": "G minor", "s": "7th chords"}, {"p": 47, "t": "D minor", "s": "Triads"}, {"p": 48, "t": "D minor", "s": "7th chords"}]}};
+const RUBRICS=[{"name": "Rock", "skills": [{"t": "Power chords", "d": "Play E5, A5 and D5 shapes and slide them up the neck cleanly, with palm muting on and off."}, {"t": "Palm muting", "d": "Chug steady eighth notes at 120 bpm with the muted strings staying quiet."}, {"t": "Barre chords", "d": "Hold E-shape and A-shape barre chords for a full bar with every string ringing."}, {"t": "Riffs", "d": "Play a classic riff along with the record at full speed."}, {"t": "Pentatonic solos", "d": "Play minor pentatonic in three positions and bend a note up to pitch."}, {"t": "Rhythm tightness", "d": "Strum eighth notes to a metronome for two minutes without drifting."}]}, {"name": "Metal", "skills": [{"t": "Alternate picking", "d": "Pick sixteenth notes at 140 bpm on one string, clean and even."}, {"t": "Palm-muted chugs", "d": "Play tight chugs on the low string and stop dead on the rests."}, {"t": "Gallop rhythm", "d": "Play the eighth-two-sixteenths gallop at 150 bpm without tiring."}, {"t": "Downpicking", "d": "Downpick steady eighth notes at 160 bpm for one minute."}, {"t": "Drop-tuned power chords", "d": "Retune to Drop D and move one-finger power chords cleanly."}, {"t": "Lead technique", "d": "Play a minor pentatonic or natural minor run using hammer-ons and pull-offs, fast and even."}]}, {"name": "Punk and pop-punk", "skills": [{"t": "Fast downstroke chords", "d": "Strum power chords with downstrokes only at 180 bpm."}, {"t": "Muted-to-open dynamics", "d": "Switch between palm-muted verses and open choruses on the beat."}, {"t": "Barre chord changes", "d": "Change between four barre chords in time without stopping."}, {"t": "Stamina", "d": "Play a full three-minute song at tempo without slowing."}, {"t": "Stops and starts", "d": "Hit every stop and restart in a song exactly on the count."}, {"t": "Simple song structure", "d": "Play verse, chorus and bridge of a song from memory."}]}, {"name": "Country", "skills": [{"t": "Boom-chicka strum", "d": "Play bass note, strum, bass note, strum with steady time on open chords."}, {"t": "Alternating bass", "d": "Alternate the root and fifth of each chord under the strum."}, {"t": "Travis picking", "d": "Play a basic Travis pattern with the thumb steady over C, G and F."}, {"t": "Major pentatonic licks", "d": "Play three country licks in the major pentatonic and join them in time."}, {"t": "Double stops and slides", "d": "Play sixths or thirds with a slide into them, in tune."}, {"t": "Nashville numbers", "d": "Play a I–IV–V song in any key you are given."}]}, {"name": "Funk", "skills": [{"t": "Sixteenth strumming", "d": "Keep a sixteenth-note strum going with muted scratches at 90 bpm."}, {"t": "Dominant 9th chords", "d": "Play E9 and A9 shapes and switch between them in time."}, {"t": "Chord stabs", "d": "Hit short stabs on the offbeats and mute them fast."}, {"t": "Single-note grooves", "d": "Play a two-bar groove from memory that stays locked to the beat."}, {"t": "Staying on the one", "d": "Land hard on beat one every bar while everything else stays light."}, {"t": "Playing with a drum loop", "d": "Play a full groove over a drum loop for two minutes without losing the one."}]}, {"name": "Reggae and ska", "skills": [{"t": "Skank", "d": "Play short offbeat chords on beats 2 and 4, muted by the left hand."}, {"t": "Top-string shapes", "d": "Play chords on the top three or four strings, clean and short."}, {"t": "One-drop feel", "d": "Leave space on beat one and keep the groove relaxed."}, {"t": "Minor and major changes", "d": "Switch between major and minor chords on the beat."}, {"t": "Ska upstrokes", "d": "Play fast offbeat upstrokes at 160 bpm."}, {"t": "Playing with a drum loop", "d": "Play a full song over a loop and keep the offbeat steady."}]}, {"name": "Folk and fingerstyle", "skills": [{"t": "Open chord changes", "d": "Change between G, C, D, Em and Am with no gaps."}, {"t": "Fingerpicking pattern", "d": "Play thumb-index-middle-ring patterns steadily through a full song."}, {"t": "Travis picking", "d": "Keep the alternating thumb steady while the fingers play melody."}, {"t": "Capo use", "d": "Move a song to a new key with the capo and play it in the new shapes."}, {"t": "Hammer-ons and pull-offs", "d": "Add them to chords and melody lines without breaking the rhythm."}, {"t": "Alternate tunings", "d": "Retune to DADGAD or open D and play a simple piece."}]}, {"name": "Soul and R&B", "skills": [{"t": "Seventh and ninth chords", "d": "Play minor 7th and dominant 9th chords and switch in time."}, {"t": "Partial chords", "d": "Play two- and three-note chord pieces on the top strings with slides."}, {"t": "Double stops", "d": "Play sixths with hammer-ons and slides between chord shapes."}, {"t": "Rhythm feel", "d": "Play a laid-back sixteenth groove at 80 bpm with clean muting."}, {"t": "Chord embellishments", "d": "Add fills between chord changes without losing the beat."}, {"t": "Playing with a track", "d": "Play along with a full soul track from start to finish."}]}, {"name": "Latin and bossa nova", "skills": [{"t": "Bossa rhythm", "d": "Play the bossa nova pattern with the thumb keeping steady bass."}, {"t": "Seventh and ninth chords", "d": "Play maj7, m7, dom7 and 9th shapes and move between them."}, {"t": "Fingerstyle control", "d": "Play bass with the thumb and chords with the fingers, evenly."}, {"t": "ii–V–I in bossa", "d": "Play a ii–V–I in three keys using the bossa rhythm."}, {"t": "Syncopation", "d": "Hold syncopated accents in time for a full song."}, {"t": "Playing a standard", "d": "Play one bossa standard from memory with its changes."}]}, {"name": "Blues", "skills": [{"t": "12-bar shuffle", "d": "Play a 12-bar blues in E and A with a steady shuffle rhythm."}, {"t": "Dominant 7th chords", "d": "Play open and barre 7th chords for I, IV and V."}, {"t": "Minor pentatonic and blues note", "d": "Play position 1 with the flat fifth added, in time."}, {"t": "Bends and vibrato", "d": "Bend a whole step to pitch and hold a steady vibrato."}, {"t": "Turnaround", "d": "Play a turnaround on the last two bars and land on the one."}, {"t": "Minor and jazz blues", "d": "Play the minor blues in A and the jazz blues in F from the lessons."}]}, {"name": "Jazz", "skills": [{"t": "Seventh-chord shapes", "d": "Play maj7, m7, dom7 and m7♭5 shapes on the 6th and 5th strings."}, {"t": "ii–V–I in three keys", "d": "Play major ii–V–I in C, F and B♭ with smooth voice leading."}, {"t": "Minor ii–V–i", "d": "Play minor ii–V–i in three keys using the m7♭5 and 7♭9 shapes."}, {"t": "Turnarounds", "d": "Play I–VI7–ii–V in time and resolve to the one."}, {"t": "Substitutions", "d": "Play a tritone substitution and a passing diminished chord in a progression."}, {"t": "Comping and soloing", "d": "Comp a progression for one chorus, then play the scale over it."}]}];
+const LV=['Not started','Learning','Solid','Ready'];
+const IC={
+ electric:'<svg viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 9-12h-7z"/></svg>',
+ acoustic:'<svg viewBox="0 0 24 24"><circle cx="9" cy="15" r="6"/><path d="M13.5 10.5L21 3M18 3h3v3"/><circle cx="9" cy="15" r="1.5"/></svg>',
+ blues:'<svg viewBox="0 0 24 24"><path d="M3 12c2-6 4-6 6 0s4 6 6 0 4-6 6 0"/><path d="M3 19h18"/></svg>',
+ jazz:'<svg viewBox="0 0 24 24"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg>',
+ chords:'<svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 9h16M4 15h16M10 3v18M15 3v18"/><circle cx="12.5" cy="12" r="1.3" fill="#fff"/></svg>',
+ rubric:'<svg viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M3.5 6l1.5 1.5L7 5M3.5 12l1.5 1.5L7 11M3.5 18l1.5 1.5L7 17"/></svg>'
+};
+const COL={electric:'#ff453a',acoustic:'#ff9f0a',blues:'#0a84ff',jazz:'#bf5af2',chords:'#30b0c7',rubric:'#30d158'};
+const views=['homeView','songsView','lessonView','rubView'];
+function show(v,arg){
+  views.forEach(x=>$('#'+x).hidden=(x!==v));
+  try{ history.replaceState(null,'','#'+(arg?v+':'+arg:v)); }catch(e){}
+  if(v==='homeView') drawHome();
+}
+function go(name){
+  if(name==='home') return show('homeView');
+  if(name==='electric'||name==='acoustic'){ setTab(name); return show('songsView'); }
+  if(LESSONS[name]){ openLesson(name); return; }
+  if(name==='progress'){ openRubric(store.get('pr.rb.last',RUBRICS[0].name)); return; }
+}
+document.addEventListener('click',e=>{ const g=e.target.closest('[data-go]'); if(g) go(g.dataset.go); });
+const rbGet=(st,i)=>parseInt(store.get('pr.rb.'+st+'.'+i,'0'),10)||0;
+function rbPct(st){ const r=RUBRICS.find(x=>x.name===st); const n=r.skills.length; let t=0; r.skills.forEach((k,i)=>t+=rbGet(st,i)); return Math.round(100*t/(3*n)); }
+function songStat(t){ const L=songsOf(t); return `${L.length} songs · ${L.filter(s=>hasTab(t,s)&&hasVid(t,s)).length} ready`; }
+function drawHome(){
+  const card=(id,title,desc,stat,pct)=>`<button class="card" data-go="${id}"><span class="ic" style="background:${COL[id]||COL.rubric}">${IC[id]||IC.rubric}</span><b>${title}</b><span class="d">${desc}</span>${pct===undefined?'':`<div class="bar2"><i style="width:${pct}%"></i></div>`}<span class="st">${stat}</span></button>`;
+  $('#gridMain').innerHTML=card('electric','Electric songs','Grunge, rock and classics. Tab on the left, video on the right.',songStat('electric'))+card('acoustic','Acoustic songs','Folk, 60s favourites and unplugged songs.',songStat('acoustic'));
+  $('#gridLess').innerHTML=card('blues','Blues','12-bar blues in seven keys, plus minor and jazz blues. Chords and scales.',LESSONS.blues.items.length+' pages')+card('jazz','Jazz','ii–V–I in all keys, turnarounds, substitutions and more.',LESSONS.jazz.items.length+' pages')+card('chords','Chord shapes','Triads and 7th chords for every major and minor key.',LESSONS.chords.items.length+' pages');
+  const all=RUBRICS.reduce((a,r)=>a+rbPct(r.name),0)/RUBRICS.length;
+  $('#gridRub').innerHTML=card('progress','Style rubrics','Rate yourself on '+RUBRICS.length+' styles, from rock to bossa nova. It saves by itself.',RUBRICS.length+' styles · '+Math.round(all)+'% average',Math.round(all));
+  $('#homeTheme').textContent=document.documentElement.dataset.theme==='dark'?'Light':'Dark';
+}
+$('#homeTheme').onclick=()=>{ $('#theme').click(); $('#homeTheme').textContent=document.documentElement.dataset.theme==='dark'?'Light':'Dark'; };
+
+/* Lessons: PDF viewer with a page list */
+let lsKey=null, lsIdx=0, lsRows=[];
+function openLesson(k,idx){
+  lsKey=k; const L=LESSONS[k]; $('#lsTitle').textContent=L.name; $('#lsq').value='';
+  lsIdx=(idx!==undefined)?idx:(parseInt(store.get('pr.ls.'+k,'0'),10)||0); if(lsIdx>=L.items.length) lsIdx=0;
+  show('lessonView'); drawLs(); showPage();
+}
+function drawLs(){
+  const L=LESSONS[lsKey], ws=words($('#lsq').value);
+  lsRows=L.items.map((it,i)=>({it,i})).filter(({it})=>!ws.length||ws.every(w=>norm(it.t+' '+it.s).includes(w)));
+  $('#lsCount').textContent=lsRows.length+' of '+L.items.length+' pages';
+  $('#lsList').innerHTML=lsRows.map(({it,i})=>`<button class="row" data-i="${i}" aria-current="${i===lsIdx}"><span class="n">${it.p}</span><span class="tx"><b>${hl(it.t,ws)}</b><span class="s">${hl(it.s,ws)}</span></span></button>`).join('')||'<div class="none">No pages match.</div>';
+  const c=$('#lsList').querySelector('[aria-current="true"]'); if(c) c.scrollIntoView({block:'nearest'});
+}
+function showPage(){
+  const L=LESSONS[lsKey], it=L.items[lsIdx]; store.set('pr.ls.'+lsKey,String(lsIdx));
+  $('#lsNow').textContent=it.t; $('#lsSub').textContent=it.s+' · page '+it.p+' of '+L.items.length;
+  $('#lsFind').href='https://www.youtube.com/results?search_query='+enc(it.t.replace(/ major| minor|^Blues in /,m=>m===' major'?' major':m===' minor'?' minor':'')+L.find);
+  const src=L.file+'#page='+it.p+'&view=FitH&toolbar=0&navpanes=0';
+  $('#lsPdf').innerHTML=`<iframe title="${esc(it.t)}" src="${src}"></iframe>`;
+  drawLs();
+}
+$('#lsList').addEventListener('click',e=>{ const b=e.target.closest('.row'); if(!b) return; lsIdx=parseInt(b.dataset.i,10); showPage(); });
+$('#lsq').addEventListener('input',drawLs);
+$('#lsPrev').onclick=()=>{ lsIdx=(lsIdx-1+LESSONS[lsKey].items.length)%LESSONS[lsKey].items.length; showPage(); };
+$('#lsNext').onclick=()=>{ lsIdx=(lsIdx+1)%LESSONS[lsKey].items.length; showPage(); };
+
+/* Rubrics */
+let rbCur=null;
+function openRubric(name){ rbCur=name; store.set('pr.rb.last',name); show('rubView'); drawRb(); }
+function drawRb(){
+  $('#rbList').innerHTML=RUBRICS.map(r=>`<button class="row" data-st="${esc(r.name)}" aria-current="${r.name===rbCur}"><span class="tx"><b>${esc(r.name)}</b><span class="s">${rbPct(r.name)}% complete</span></span></button>`).join('');
+  const r=RUBRICS.find(x=>x.name===rbCur), pct=rbPct(rbCur);
+  const link={Blues:'blues',Jazz:'jazz'}[rbCur];
+  $('#rbMain').innerHTML=`<h2>${esc(rbCur)}</h2><div class="sum">${pct}% of the way to Ready on every skill${link?` · <a href="#" data-go="${link}" style="color:var(--accent)">Open the ${esc(rbCur)} lessons</a>`:''}</div><div class="bar2" style="margin-bottom:6px"><i style="width:${pct}%"></i></div><p class="key">Not started · Learning · Solid (you can do it with some care) · Ready (you can do it in a song, at tempo)</p>`+
+   r.skills.map((k,i)=>`<div class="sk"><div><b>${esc(k.t)}</b><p>${esc(k.d)}</p></div><div class="lv" data-i="${i}">${LV.map((n,l)=>`<button data-l="${l}" aria-pressed="${rbGet(rbCur,i)===l}">${n}</button>`).join('')}</div></div>`).join('');
+}
+$('#rbList').addEventListener('click',e=>{ const b=e.target.closest('.row'); if(b){ rbCur=b.dataset.st; store.set('pr.rb.last',rbCur); drawRb(); } });
+$('#rbMain').addEventListener('click',e=>{ const b=e.target.closest('.lv button'); if(!b) return; store.set('pr.rb.'+rbCur+'.'+b.parentNode.dataset.i,b.dataset.l); drawRb(); });
+document.addEventListener('keydown',e=>{
+  if(!$('#lessonView').hidden && !/INPUT|TEXTAREA/.test(document.activeElement.tagName)){ if(e.key==='ArrowRight') $('#lsNext').click(); if(e.key==='ArrowLeft') $('#lsPrev').click(); }
+  if(e.key==='Escape' && $('#homeView').hidden && !dlg.open && !/INPUT|TEXTAREA/.test(document.activeElement.tagName)) show('homeView');
+});
+/* Start on the home screen */
+(function(){ const h=(location.hash||'').slice(1); if(h==='songsView'){ show('songsView'); } else show('homeView'); })();
 
 /* Intro: a machine gun fires at a shipping container and the hits punch the title into the steel.
    The music is synthesised in the browser (distorted power chords, double kick, gunfire). Click or press a key to skip. */
