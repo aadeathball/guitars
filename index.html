@@ -55,9 +55,14 @@ button{font:inherit;color:inherit}
 .menu .items a{display:block;padding:9px 12px;border-radius:8px;color:var(--fg);text-decoration:none}
 .menu .items a:hover{background:var(--sel)}
 .menu .items small{display:block;color:var(--muted)}
+.tools{display:flex;gap:8px;padding:0 18px 8px;flex:none;flex-wrap:wrap;align-items:center}
+.tools button{border:0;background:var(--raise);border-radius:8px;padding:5px 12px;font-weight:600;font-size:13px;cursor:pointer}
+.tools button:hover{background:var(--sel)}
+.tools .grow{flex:1}
+.tools #openTab{color:var(--accent)}
 .tabarea{flex:1;min-height:0;position:relative;display:flex}
 textarea#tab{flex:1;width:100%;border:0;resize:none;outline:none;background:transparent;color:var(--fg);
-  font:17px/1.35 var(--mono);padding:8px 18px 18px;white-space:pre;overflow:auto;tab-size:4}
+  font:var(--fs,17px)/1.35 var(--mono);padding:8px 18px 18px;white-space:pre;overflow:auto;tab-size:4;font-variant-ligatures:none}
 textarea#tab::placeholder{color:transparent}
 .empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;padding:24px;color:var(--muted);pointer-events:none}
 .empty b{color:var(--fg);font-size:18px;font-weight:600}
@@ -117,9 +122,17 @@ dialog::backdrop{background:var(--scrim);backdrop-filter:blur(6px)}
       <div style="min-width:0"><h2 id="tabTitle"></h2><div class="sub" id="tabSub"></div></div>
       <details class="menu" id="menu"><summary>Sources</summary><div class="items" id="sources"></div></details>
     </div>
+    <div class="tools">
+      <button id="openTab" title="Opens GuitarTabs for this song in its own window, sized to the left half of your screen">Open tab window</button>
+      <button id="paste">Paste</button>
+      <button id="clear">Clear</button>
+      <span class="grow"></span>
+      <button id="fsm" aria-label="Smaller text">A&minus;</button>
+      <button id="fsp" aria-label="Larger text">A+</button>
+    </div>
     <div class="tabarea">
       <textarea id="tab" spellcheck="false" aria-label="Tab for this song" placeholder="x"></textarea>
-      <div class="empty" id="empty"><b>No tab yet</b><p>Open a source above, copy the tab, and paste it here. It stays on this computer.</p></div>
+      <div class="empty" id="empty"><b>No tab yet</b><p>Click Open tab window, copy the tab, then click Paste. It stays on this computer.</p></div>
     </div>
   </section>
   <div class="divider" id="divider" role="separator" aria-orientation="vertical" aria-label="Resize panes" tabindex="0" title="Drag to resize. Double-click to reset."></div>
@@ -199,6 +212,7 @@ let tab = store.get('pr.tab','electric'); if(!SONGS[tab]) tab='electric';
 let sel = parseInt(store.get('pr.sel.'+tab,'0'),10)||0;
 const cur = () => SONGS[tab][sel];
 const key = s => tab+'|'+s.a+'|'+s.t;
+const gtUrl = s => `https://www.guitartabs.cc/search.php?tabtype=any&band=${enc(s.a.replace(/^The /,''))}&song=${enc(s.t)}`;
 
 /* Theme: dark by default */
 function setTheme(t){ document.documentElement.dataset.theme=t; $('#theme').textContent = t==='dark'?'Light':'Dark'; store.set('pr.theme',t); }
@@ -213,10 +227,10 @@ function render(){
   $('#tabTitle').textContent = s.t;
   $('#tabSub').textContent = `${s.a}${s.v?' · '+s.v:''} · ${s.tun}`;
   $('#sources').innerHTML = [
+    `<a href="${gtUrl(s)}" target="_blank" rel="noopener">GuitarTabs<small>All versions of this song</small></a>`,
     `<a href="https://www.songsterr.com/a/wsa/x-tab-s${s.sid}" target="_blank" rel="noopener">Songsterr tab</a>`,
     s.cc ? `<a href="https://www.songsterr.com/a/wsa/x-chords-s${s.sid}" target="_blank" rel="noopener">Songsterr chords</a>` : '',
     `<a href="https://www.ultimate-guitar.com/search.php?search_type=title&value=${enc(full)}" target="_blank" rel="noopener">Ultimate Guitar</a>`,
-    `<a href="https://www.google.com/search?q=${enc('site:guitartabs.cc '+full)}" target="_blank" rel="noopener">GuitarTabs</a>`,
     `<a href="https://musescore.com/sheetmusic?text=${enc(full)}" target="_blank" rel="noopener">MuseScore sheet music<small>User uploads</small></a>`
   ].join('');
   $('#menu').open = false;
@@ -229,6 +243,30 @@ function render(){
     + (s.warn?'<span class="warn">Check the tuning on the tab before you tune up.</span>':'');
   document.title = `${s.t} · Practice Room`;
 }
+/* Clean pasted tab: plain text only, tidy line endings, drop [tab] and [ch] markup, keep spacing exact */
+function cleanTab(t){
+  return t.replace(/\r\n?/g,'\n').replace(/\u00a0/g,' ').replace(/\[\/?(tab|ch|\/?b)\]/gi,'').replace(/[ \t]+$/gm,'').replace(/^\n+|\n+$/g,'');
+}
+function saveTab(v){ const ta=$('#tab'); ta.value=v; store.set('pr.tabtext.'+key(cur()),v); $('#empty').hidden=!!v; ta.scrollTop=0; ta.scrollLeft=0; }
+$('#tab').addEventListener('paste',e=>{
+  const t=(e.clipboardData&&e.clipboardData.getData('text/plain'))||''; if(!t) return;
+  e.preventDefault(); const ta=e.target;
+  if(!ta.value.trim()){ saveTab(cleanTab(t)); }
+  else { const a=ta.selectionStart,b=ta.selectionEnd; ta.setRangeText(cleanTab(t),a,b,'end'); store.set('pr.tabtext.'+key(cur()),ta.value); $('#empty').hidden=!ta.value; }
+});
+$('#paste').onclick=async()=>{
+  try{ const t=await navigator.clipboard.readText(); if(t.trim()) saveTab(cleanTab(t)); else $('#tab').focus(); }
+  catch(e){ $('#tab').focus(); $('#empty').querySelector('p').textContent='Chrome blocked the Paste button. Click in the box and press Ctrl V instead.'; }
+};
+$('#clear').onclick=()=>{ if($('#clear').dataset.arm==='1'){ saveTab(''); $('#clear').textContent='Clear'; $('#clear').dataset.arm=''; } else { $('#clear').dataset.arm='1'; $('#clear').textContent='Sure?'; setTimeout(()=>{ $('#clear').dataset.arm=''; $('#clear').textContent='Clear'; },2500); } };
+$('#openTab').onclick=()=>{
+  const w=Math.floor((screen.availWidth||1200)/2), h=screen.availHeight||800, l=(screen.availLeft||0);
+  const win=window.open(gtUrl(cur()),'tabwin',`popup=yes,left=${l},top=0,width=${w},height=${h}`);
+  if(!win) window.open(gtUrl(cur()),'_blank','noopener');
+};
+let fs=parseInt(store.get('pr.fs','17'),10)||17;
+function setFs(n){ fs=Math.min(30,Math.max(11,n)); document.documentElement.style.setProperty('--fs',fs+'px'); store.set('pr.fs',String(fs)); }
+setFs(fs); $('#fsm').onclick=()=>setFs(fs-1); $('#fsp').onclick=()=>setFs(fs+1);
 $('#tab').addEventListener('input',e=>{ store.set('pr.tabtext.'+key(cur()),e.target.value); $('#empty').hidden=!!e.target.value; });
 
 function select(i){ sel=i; store.set('pr.sel.'+tab,String(i)); render(); }
