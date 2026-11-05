@@ -236,8 +236,7 @@ dialog::backdrop{background:var(--scrim);backdrop-filter:blur(6px)}
     </div>
     <div class="count" id="count"></div>
     <div class="list" id="list" role="listbox" aria-label="Songs"></div>
-    <div class="legend"><span><i style="background:#30d158"></i>Tab saved</span><span><i style="background:var(--accent)"></i>Video saved</span></div>
-    <div class="sbf"><button class="ibtn" id="addSong">+ Add song</button><button class="ibtn" id="backup" title="Download all your saved tabs and video links">Backup</button><button class="ibtn" id="restore" title="Load a backup file">Restore</button><input type="file" id="restoreFile" accept="application/json" hidden></div>
+    <div class="sbf"><button class="ibtn" id="addSong">+ Add song</button></div>
   </aside>
   <main class="main">
     <div class="top">
@@ -552,7 +551,7 @@ function drawList(keepScroll){
   if(ws.length) rows.sort((a,b)=>b.sc-a.sc||a.i-b.i);
   hi=Math.min(hi,rows.length-1);
   $('#count').textContent = ws.length ? `${rows.length} match${rows.length===1?'':'es'} in all songs` : `${rows.length} songs`;
-  list.innerHTML = rows.length ? rows.map((r,k)=>`<button class="row${k===hi?' hi':''}" role="option" data-k="${k}" aria-current="${r.t===tab&&r.i===sel}"><span class="n">${r.i+1}</span><span class="tx"><b>${hl(r.s.t,ws)}</b><span class="s">${hl(r.s.a,ws)}${r.s.v?' · '+esc(r.s.v):''}</span></span>${ws.length&&r.t!==tab?`<span class="tag">${TABNAME[r.t]}</span>`:''}<span class="dots"><i class="dot t${r.ht?' on':''}" title="${r.ht?'Tab saved':'No tab yet'}"></i><i class="dot v${r.hv?' on':''}" title="${r.hv?'Video saved':'No video yet'}"></i></span></button>`).join('')
+  list.innerHTML = rows.length ? rows.map((r,k)=>`<button class="row${k===hi?' hi':''}" role="option" data-k="${k}" aria-current="${r.t===tab&&r.i===sel}"><span class="n">${r.i+1}</span><span class="tx"><b>${hl(r.s.t,ws)}</b><span class="s">${hl(r.s.a,ws)}${r.s.v?' · '+esc(r.s.v):''}</span></span>${ws.length&&r.t!==tab?`<span class="tag">${TABNAME[r.t]}</span>`:''}</button>`).join('')
     : `<div class="none">${ws.length?`No songs match "${esc(q.value)}".<br><br><button class="btn alt" id="addFromSearch">Add it as a new song</button>`:'Nothing here.'}</div>`;
   if(!keepScroll||true){ const c=list.querySelector('[aria-current="true"]'); if(c&&!ws.length&&keepScroll) c.scrollIntoView({block:'center'}); }
   const a=$('#addFromSearch'); if(a) a.onclick=()=>openAdd(q.value);
@@ -600,19 +599,8 @@ $('#aSave').onclick=()=>{
   setTab(addTab,songsOf(addTab).length-1); show('songsView');
 };
 
-/* Backup and restore: tabs, video links, added songs */
-$('#backup').onclick=()=>{
-  const data={}; try{ for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k.startsWith('pr.')&&!/^pr\.(intro)$/.test(k)) data[k]=localStorage.getItem(k); } }catch(e){}
-  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify({practiceRoom:1,data},null,1)],{type:'application/json'}));
-  a.download='practice-room-backup-'+new Date().toISOString().slice(0,10)+'.json'; document.body.appendChild(a); a.click(); a.remove();
-};
-$('#restore').onclick=()=>$('#restoreFile').click();
-$('#restoreFile').addEventListener('change',async e=>{
-  const f=e.target.files[0]; if(!f) return;
-  try{ const j=JSON.parse(await f.text()); if(!j.practiceRoom||!j.data) throw 0; Object.entries(j.data).forEach(([k,v])=>{ if(k.startsWith('pr.')) store.set(k,String(v)); }); location.reload(); }
-  catch(err){ alert('That file is not a Practice Room backup.'); }
-  e.target.value='';
-});
+/* Ask Chrome to keep this site's saved tabs, links and songs even when disk space runs low */
+try{ if(navigator.storage&&navigator.storage.persist) navigator.storage.persist(); }catch(e){}
 
 /* Draggable divider. Ratio is remembered. */
 const split=$('#split'), div=$('#divider');
