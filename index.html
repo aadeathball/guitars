@@ -330,6 +330,37 @@ textarea#tab{color:#f6ead2}
 @media (max-width:1100px){.kchords{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media (max-width:640px){.kchords{grid-template-columns:repeat(2,minmax(0,1fr))}.card.big{flex-direction:column;align-items:flex-start}}
 @media (prefers-reduced-motion:reduce){.card:hover{transform:none}}
+
+/* Video controls and tools panel */
+.vctl{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.vctl i{font:600 12px var(--ui);font-style:normal;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 2px 0 6px}
+.vctl i:first-child{margin-left:0}
+.vctl button{font:600 13px var(--ui);text-transform:uppercase;letter-spacing:.05em;padding:5px 10px;background:#19191c;color:var(--fg);border:1px solid #34343a;border-radius:3px;cursor:pointer}
+.vctl button:hover{border-color:var(--accent)}
+.vctl button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#0b0b0b}
+.vctl #vAB{color:var(--muted);font-size:13px;margin-left:4px}
+.toolsP{position:fixed;right:14px;top:64px;width:min(300px,calc(100vw - 28px));z-index:40;background:linear-gradient(180deg,#19191c,#0d0d0f);border:1px solid var(--edge);border-top:2px solid var(--accent);border-radius:5px;padding:14px;box-shadow:0 20px 60px rgba(0,0,0,.7);display:flex;flex-direction:column;gap:14px}
+.toolsP[hidden]{display:none}
+.tph{display:flex;justify-content:space-between;align-items:center}
+.tph b{font:400 26px/1 var(--disp)}
+.toolsP h4{margin:0 0 8px;font:600 13px var(--ui);letter-spacing:.24em;text-transform:uppercase;color:var(--accent)}
+.mrow{display:flex;gap:6px;align-items:center;justify-content:center}
+.mb{min-width:92px;text-align:center;font:500 14px var(--ui);color:var(--muted)}
+.mb b{font:600 30px/1 var(--ui);color:var(--fg)}
+.mdots{display:flex;gap:10px;justify-content:center;margin:12px 0}
+.mdots i{width:16px;height:16px;border-radius:50%;background:#2a2a30}
+.mdots i.on{background:var(--hot);box-shadow:0 0 14px var(--hot)}
+.mdots i:first-child.on{background:var(--accent);box-shadow:0 0 14px var(--accent)}
+#tuner{border-top:1px solid var(--edge);padding-top:14px;text-align:center}
+#tuner h4{text-align:left}
+.tnote{font:600 54px/1 var(--ui)}
+.tbar{position:relative;height:14px;background:#0b0b0d;border:1px solid var(--edge);border-radius:3px;margin:10px 0}
+.tmid{position:absolute;left:50%;top:-4px;bottom:-4px;width:2px;background:var(--muted)}
+.tneedle{position:absolute;left:50%;top:-5px;bottom:-5px;width:6px;margin-left:-3px;background:var(--accent);border-radius:2px;transition:left .09s}
+.tneedle.ok{background:#30d158}
+#tMsg{margin:0 0 10px;color:var(--muted);font-size:13px}
+.tools #asV{font:600 12.5px var(--ui);color:var(--muted);min-width:78px;text-align:center;letter-spacing:.04em}
+.tools #asGo[aria-pressed="true"]{background:var(--accent);color:#0b0b0b;border-color:var(--accent)}
 </style>
 </head>
 <body>
@@ -354,6 +385,7 @@ textarea#tab{color:#f6ead2}
       <button class="ibtn" data-go="home" aria-label="Back to the home screen">Home</button>
       <button class="ibtn" id="sbtoggle" aria-label="Open the song list and search" title="Song list and search (press / or Ctrl K)">☰ Songs</button>
       <div class="now"><b id="nowT"></b><span id="nowS"></span></div>
+      <button class="ibtn" data-tools="1" title="Metronome and tuner">Tools</button>
       <button class="ibtn" id="topAdd" title="Add a song">+ Add song</button>
       <button class="ibtn" id="delSong" hidden title="Remove this song you added">Remove</button>
       <button class="ibtn" id="prev" aria-label="Previous song">‹</button>
@@ -370,6 +402,7 @@ textarea#tab{color:#f6ead2}
           <button id="paste">Paste</button>
           <button id="clear">Clear</button>
           <span class="grow"></span>
+          <button id="asGo" title="Scrolls the tab down by itself. Space starts and stops it.">▶ Scroll</button><button id="asM" aria-label="Scroll slower">−</button><span id="asV"></span><button id="asP" aria-label="Scroll faster">+</button>
           <button id="fit" title="Shrink or grow the text so the longest line fits the pane">Fit</button>
           <button id="fsm" aria-label="Smaller text">A&minus;</button>
           <button id="fsp" aria-label="Larger text">A+</button>
@@ -384,6 +417,7 @@ textarea#tab{color:#f6ead2}
         <div class="vid" id="vid"></div>
         <div class="vf">
           <div class="link"><input id="vlink" type="text" placeholder="Paste a YouTube link here. It saves by itself." aria-label="YouTube link for this song" spellcheck="false" autocomplete="off"><button class="btn alt" id="vreset" hidden>Reset</button></div>
+          <div class="vctl" id="vctl"><i>Speed</i><button data-vr="0.5">50%</button><button data-vr="0.75">75%</button><button data-vr="1">100%</button><i>Loop</i><button id="vA" title="Marks where the loop starts, at the point the video is at now">Set start</button><button id="vB" title="Marks where the loop ends, at the point the video is at now">Set end</button><button id="vL">Loop off</button><button id="vX" hidden>Clear</button><span id="vAB"></span></div>
           <div class="row2"><a class="sm" id="findSong" target="_blank" rel="noopener">Find song on YouTube</a><a class="sm" id="findLesson" target="_blank" rel="noopener">Find a lesson</a><a class="sm" id="watch" target="_blank" rel="noopener">Open in YouTube</a><span class="msg" id="vmsg"></span></div>
         </div>
       </section>
@@ -396,7 +430,7 @@ textarea#tab{color:#f6ead2}
 <div class="view" id="homeView" hidden>
   <div class="home">
     <div class="hd"><h1>Practice Room</h1><p>Plug in. Turn it up. Pick your poison. 🤘</p></div>
-    <div class="hsearch"><input id="hq" type="search" placeholder="Search songs, keys, scales, chords. Try: c# minor" aria-label="Search everything" autocomplete="off" spellcheck="false"><div class="hres" id="hres" hidden></div><button class="ibtn" id="homeAdd" style="margin-top:10px">+ Add a song</button></div>
+    <div class="hsearch"><input id="hq" type="search" placeholder="Search songs, keys, scales, chords. Try: c# minor" aria-label="Search everything" autocomplete="off" spellcheck="false"><div class="hres" id="hres" hidden></div><button class="ibtn" id="homeAdd" style="margin-top:10px">+ Add a song</button> <button class="ibtn" data-tools="1" title="Metronome and tuner">Tools</button></div>
     <div id="homeGrids">
     <div class="grid" id="gridKeys" style="margin-bottom:14px"></div>
     <div class="sec">Songs</div>
@@ -413,6 +447,7 @@ textarea#tab{color:#f6ead2}
       <button class="ibtn" data-go="home">Home</button>
       <h1 id="kTitle"></h1><span class="rel" id="kRel"></span>
       <span class="grow"></span>
+      <button class="ibtn" data-tools="1" title="Metronome and tuner">Tools</button>
       <select id="kProg" aria-label="Chord progression to jam over"></select>
       <div class="tempo"><button class="ibtn" data-k="bpm" data-v="-5" aria-label="Slower">−</button><span id="kBpm"></span><button class="ibtn" data-k="bpm" data-v="5" aria-label="Faster">+</button></div>
       <button class="btn" id="kPlay">▶ Jam</button>
@@ -429,10 +464,11 @@ textarea#tab{color:#f6ead2}
     <div class="kbar">
       <div class="kchips" id="kScales"></div>
       <div class="kchips" id="kPos"></div>
+      <div class="kchips" id="kCt"><i>Chord tones</i><button data-k="ct" data-v="0">Off</button><button data-k="ct" data-v="1">Ring them</button><button data-k="ct" data-v="2">Arpeggio only</button></div>
       <div class="kchips" id="kLab"><i>Show</i><button data-k="lab" data-v="n">Notes</button><button data-k="lab" data-v="d">Degrees</button></div>
     </div>
     <div class="neckwrap" id="kNeck"></div>
-    <div class="kleg"><span><i style="background:#ff2d1a"></i>Root note</span><span><i style="background:#3fb6ff"></i>Blue note</span><span><i style="background:#e9e6df"></i>Scale note</span></div>
+    <div class="kleg"><span><i style="background:#ff2d1a"></i>Root note</span><span><i style="background:#3fb6ff"></i>Blue note</span><span><i style="background:#e9e6df"></i>Scale note</span><span><i style="background:transparent;box-shadow:inset 0 0 0 3px #ffb000"></i>Note of the chord being played</span></div>
     <p class="ktip" id="kTip"></p>
   </div></div>
 </div>
@@ -448,6 +484,7 @@ textarea#tab{color:#f6ead2}
     </aside>
     <main class="main">
       <div class="pbtns"><div class="now" style="flex:1;min-width:0"><b id="lsNow" style="font-size:17px"></b><div id="lsSub" style="color:var(--muted);font-size:13px"></div></div>
+        <button class="ibtn" data-tools="1" title="Metronome and tuner">Tools</button>
         <a class="ibtn" id="lsFind" target="_blank" rel="noopener" style="text-decoration:none;color:var(--accent)">Find a backing track</a>
         <button class="ibtn" id="lsPrev" aria-label="Previous">‹</button><button class="ibtn" id="lsNext" aria-label="Next">›</button></div>
       <div class="pdf" id="lsPdf"></div>
@@ -455,6 +492,20 @@ textarea#tab{color:#f6ead2}
   </div>
 </div>
 
+<div class="toolsP" id="toolsP" hidden>
+  <div class="tph"><b>Tools</b><button class="ibtn" id="tpX" aria-label="Close tools">✕</button></div>
+  <div id="metro"><h4>Metronome</h4>
+    <div class="mrow"><button class="ibtn" data-mb="-5" aria-label="5 slower">−5</button><button class="ibtn" data-mb="-1" aria-label="1 slower">−</button><span class="mb"><b id="mBpm"></b> bpm</span><button class="ibtn" data-mb="1" aria-label="1 faster">+</button><button class="ibtn" data-mb="5" aria-label="5 faster">+5</button></div>
+    <div class="mdots" id="mDots"><i></i><i></i><i></i><i></i></div>
+    <div class="mrow"><button class="btn" id="mGo">▶ Start</button><button class="ibtn" id="mTap">Tap tempo</button></div>
+  </div>
+  <div id="tuner"><h4>Tuner</h4>
+    <div class="tnote" id="tNote">–</div>
+    <div class="tbar"><span class="tmid"></span><span class="tneedle" id="tNeedle"></span></div>
+    <p id="tMsg">Uses your microphone.</p>
+    <button class="btn" id="tGo">Start tuner</button>
+  </div>
+</div>
 <dialog id="dlg" aria-label="Add a song">
   <div class="sheet"><h3>Add a song</h3>
     <div class="seg" id="aSeg"><button data-t="electric" aria-selected="true">Electric</button><button data-t="acoustic" aria-selected="false">Acoustic</button></div>
@@ -586,6 +637,7 @@ function render(){
     `<a href="https://musescore.com/sheetmusic?text=${enc(full)}" target="_blank" rel="noopener">MuseScore sheet music<small>User uploads</small></a>`
   ].join('');
   $('#menu').open = false;
+  if(window.asReady) asStop();
   const ta = $('#tab'); ta.value = store.get('pr.tabtext.'+key(s),''); $('#empty').hidden = !!ta.value; ta.scrollTop=0; ta.scrollLeft=0;
   renderVideo();
   $('#delSong').hidden = sel < SONGS[tab].length;
@@ -595,7 +647,7 @@ function render(){
 function renderVideo(msg,cls){
   const s=cur(), v=vidOf(s), full=s.a+' '+s.t;
   if(v){ const [id,st]=v.split('@');
-    $('#vid').innerHTML = `<iframe title="${esc(full)}" src="https://www.youtube.com/embed/${id}?rel=0&modestbranding=1&playsinline=1${st?'&start='+st:''}"
+    $('#vid').innerHTML = `<iframe title="${esc(full)}" src="https://www.youtube.com/embed/${id}?rel=0&modestbranding=1&playsinline=1&enablejsapi=1&origin=${enc(location.origin)}${st?'&start='+st:''}"
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
       referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>`;
     $('#watch').hidden=false; $('#watch').href=`https://www.youtube.com/watch?v=${id}${st?'&t='+st:''}`;
@@ -608,6 +660,7 @@ function renderVideo(msg,cls){
   $('#vreset').hidden=!savedVid(s);
   $('#vlink').value='';
   const m=$('#vmsg'); m.textContent=msg||(savedVid(s)?'Your saved link':(s.vid?'Built in link':'')); m.className='msg '+(cls||'');
+  if(window.vOK) vHook();
 }
 function saveVideo(raw){
   const id=parseYT(raw);
@@ -777,15 +830,21 @@ const T5={'':r=>[-1,r,r+2,r+2,r+2,r],m:r=>[-1,r,r+2,r+2,r+1,r],dim:r=>[-1,r,r+1,
 const SCALES={
   minor:[{n:'Minor pentatonic',iv:[0,3,5,7,10],box:[0,3,5,7,10],tip:'<b>The safe one.</b> Five notes, and every one of them works over every chord in this key. Start in box 1 and bend the ♭7 and the 4.'},
     {n:'Blues scale',iv:[0,3,5,6,7,10],blue:6,box:[0,3,5,7,10],tip:'<b>Minor pentatonic plus the blue note (♭5).</b> Slide through the blue note on your way somewhere else. Do not park on it.'},
-    {n:'Natural minor',iv:MIN,box:[0,3,5,7,10],tip:'<b>All seven notes of the key.</b> The 2 and the ♭6 give you darker, more melodic lines than the pentatonic alone.'}],
+    {n:'Natural minor',iv:MIN,box:[0,3,5,7,10],tip:'<b>All seven notes of the key.</b> The 2 and the ♭6 give you darker, more melodic lines than the pentatonic alone.'},
+    {n:'Dorian',iv:[0,2,3,5,7,9,10],box:[0,3,5,7,10],tip:'<b>Natural minor with a raised 6.</b> Smoother and funkier. It fits best when the IV chord is major, as in a i – IV vamp.'},
+    {n:'Phrygian',iv:[0,1,3,5,7,8,10],box:[0,3,5,7,10],tip:'<b>Natural minor with a ♭2.</b> The dark, menacing metal sound. Lean on the ♭2 right next to the root.'},
+    {n:'Harmonic minor',iv:[0,2,3,5,7,8,11],box:[0,3,5,7,10],tip:'<b>Natural minor with a raised 7.</b> The neoclassical metal sound. It fits best over the V chord played as a major chord.'}],
   major:[{n:'Major pentatonic',iv:[0,2,4,7,9],box:[0,2,4,7,9],tip:'<b>Bright and sweet.</b> Five notes that work over every chord in this key. It uses the same shapes as the relative minor pentatonic.'},
     {n:'Major blues',iv:[0,2,3,4,7,9],blue:3,box:[0,2,4,7,9],tip:'<b>Major pentatonic plus the ♭3.</b> Slide or hammer from the ♭3 into the 3 for that country and southern rock sound.'},
     {n:'Major scale',iv:MAJ,box:[0,2,4,7,9],tip:'<b>All seven notes of the key.</b> Use it for melodies. Land on the root, 3 or 5 of whichever chord is playing.'},
+    {n:'Mixolydian',iv:[0,2,4,5,7,9,10],box:[0,2,4,7,9],tip:'<b>The major scale with a ♭7.</b> The classic rock and blues-rock sound. It fits 7th chords and riffs that move I – ♭VII – IV.'},
     {n:'Blues scale (gritty)',iv:[0,3,5,6,7,10],blue:6,box:[0,3,5,7,10],tip:'<b>The minor blues scale over major chords.</b> This is the classic rock and blues clash. It sounds best over the 12-bar blues with 7th chords.'}]};
 const PROGS={
   minor:[{n:'i – VI – III – VII',seq:[0,5,2,6]},{n:'i – iv – v – i',seq:[0,3,4,0]},{n:'i – VII – VI – VII',seq:[0,6,5,6]},{n:'12-bar minor blues',seq:[0,0,0,0,3,3,0,0,4,3,0,4]},{n:'One chord (i)',seq:[0]}],
   major:[{n:'I – V – vi – IV',seq:[0,4,5,3]},{n:'I – IV – V – IV',seq:[0,3,4,3]},{n:'I – vi – IV – V',seq:[0,5,3,4]},{n:'ii – V – I',seq:[1,4,0,0]},{n:'12-bar blues (7th chords)',seq:[0,0,0,0,3,3,0,0,4,3,0,4],q:'7'},{n:'One chord (I)',seq:[0]}]};
-let K=Object.assign({root:'A',mode:'minor',kind:'tri',scale:0,pos:0,lab:'n',prog:0,bpm:90},(()=>{ try{ return JSON.parse(store.get('pr.keys','{}'))||{} }catch(e){ return {} } })());
+let K=Object.assign({root:'A',mode:'minor',kind:'tri',scale:0,pos:0,lab:'n',prog:0,bpm:90,ct:1},(()=>{ try{ return JSON.parse(store.get('pr.keys','{}'))||{} }catch(e){ return {} } })());
+let kfocus=null, kfocusQ=null;
+const scNames=(I,sc)=>{ if(sc.iv.length!==7) return I.nameOf; const n=spell(K.root,sc.iv), m={}; sc.iv.forEach((x,d)=>m[(I.pc+x)%12]=n[d]); return p=>m[p]||I.nameOf(p); };
 let ksh={}, jam=null, kac=null, kout=null, knoise=null;
 const kSave=()=>store.set('pr.keys',JSON.stringify(K));
 const pcOf=n=>(LPC[LET.indexOf(n[0])]+(n[1]==='♯'?1:n[1]==='♭'?-1:0)+12)%12;
@@ -830,7 +889,8 @@ function chordSvg(f,rpc){
 function neckSvg(){
   const I=kInfo(), sc=SCALES[K.mode][K.scale], W=1000, x0=46, NF=15, fw=(W-x0-12)/NF, H=212;
   const X=fr=>fr===0?24:x0+(fr-.5)*fw, Y=i=>26+(5-i)*29;
-  const set=new Set(sc.iv.map(x=>(I.pc+x)%12));
+  const set=new Set(sc.iv.map(x=>(I.pc+x)%12)), nm=scNames(I,sc);
+  let cset=new Set(); if(K.ct&&kfocus!=null){ const c=kChords()[kfocus]; cset=new Set(QIV[kfocusQ||c.q].map(x=>(c.pc+x)%12)); }
   let lo=-1, hi=99; if(K.pos>0){ let s=((I.pc-4+12)%12+sc.box[K.pos-1])%12; if(s<1) s+=12; lo=s-1; hi=s+3; }
   let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Fretboard">`;
   [3,5,7,9,15].forEach(m=>s+=`<circle cx="${X(m)}" cy="${(Y(0)+Y(5))/2}" r="7" fill="rgba(255,255,255,.07)"/>`);
@@ -839,11 +899,14 @@ function neckSvg(){
   for(let fr=1;fr<=NF;fr++){ s+=`<line x1="${x0+fr*fw}" y1="${Y(5)-4}" x2="${x0+fr*fw}" y2="${Y(0)+4}" stroke="#8e8a80" stroke-width="2"/>`;
     s+=`<text x="${X(fr)}" y="${H-8}" font-size="13" text-anchor="middle" fill="${[3,5,7,9,12,15].includes(fr)?'#ffb000':'#6f6a62'}" font-family="Oswald,Arial Narrow,sans-serif" font-weight="600">${fr}</text>`; }
   for(let i=0;i<6;i++) s+=`<line x1="${x0}" y1="${Y(i)}" x2="${W-12}" y2="${Y(i)}" stroke="#b9b4a8" stroke-width="${2.6-i*.36}"/>`;
-  for(let i=0;i<6;i++) for(let fr=0;fr<=NF;fr++){ const p=(OPEN[i]+fr)%12; if(!set.has(p)) continue;
-    const iv=(p-I.pc+12)%12, root=iv===0, blue=sc.blue===iv, inb=fr>=lo&&fr<=hi;
-    const fill=root?'#ff2d1a':blue?'#3fb6ff':'#e9e6df', txt=root?'#fff':'#0b0b0b', lab=K.lab==='d'?IVN[iv]:I.nameOf(p);
-    s+=`<g opacity="${inb?1:.16}"><circle cx="${X(fr)}" cy="${Y(i)}" r="12" fill="${fill}" ${root?'stroke="#fff" stroke-width="1.5"':''}/><text x="${X(fr)}" y="${Y(i)+4.3}" font-size="${lab.length>2?10:12}" text-anchor="middle" fill="${txt}" font-family="Arial,sans-serif" font-weight="700">${lab}</text></g>`; }
+  for(let i=0;i<6;i++) for(let fr=0;fr<=NF;fr++){ const p=(OPEN[i]+fr)%12, inS=set.has(p), inC=cset.has(p); if(!inS&&!inC) continue;
+    const iv=(p-I.pc+12)%12, root=iv===0, blue=inS&&sc.blue===iv, inb=fr>=lo&&fr<=hi&&!(K.ct===2&&cset.size&&!inC);
+    const fill=!inS?'#15100b':root?'#ff2d1a':blue?'#3fb6ff':'#e9e6df', txt=!inS?'#ffb000':root?'#fff':'#0b0b0b', lab=K.lab==='d'?IVN[iv]:nm(p);
+    s+=`<g opacity="${inb?1:.16}"><circle cx="${X(fr)}" cy="${Y(i)}" r="${inC?11:12}" fill="${fill}" ${inC?'stroke="#ffb000" stroke-width="4"':root?'stroke="#fff" stroke-width="1.5"':''}/><text x="${X(fr)}" y="${Y(i)+4.3}" font-size="${lab.length>2?10:12}" text-anchor="middle" fill="${txt}" font-family="Arial,sans-serif" font-weight="700">${lab}</text></g>`; }
   return s+'</svg>';
+}
+function kTipDraw(){ const I=kInfo(), ch=kChords(), sc=SCALES[K.mode][K.scale], sroot=K.root;
+  $('#kTip').innerHTML=`<b>${sroot} ${sc.n.toLowerCase().replace(' (gritty)','')}:</b> ${sc.iv.map(x=>scNames(I,sc)((I.pc+x)%12)).join(' – ')}. `+sc.tip+(K.ct?(kfocus!=null?` <b>Amber rings:</b> the notes of ${kfocusQ?I.names[kfocus]+'7':ch[kfocus].name}. Land on them when that chord plays.`:' <b>Chord tones are on:</b> click a chord or hit Jam, and its notes get amber rings.'):'');
 }
 function drawKeys(){
   const I=kInfo(), ch=kChords(), scs=SCALES[K.mode], prs=PROGS[K.mode];
@@ -859,15 +922,15 @@ function drawKeys(){
     return `<div class="kc" data-d="${c.d}"><span class="rom">${c.rom}</span><span class="nm">${c.name}</span><button class="cdb" data-k="strum" data-v="${c.d}" aria-label="Play ${c.name}">${chordSvg(shp.f,c.pc)}</button><div class="shp">${c.shapes.map((x,i)=>`<button data-k="shape" data-v="${c.d}:${i}" aria-pressed="${i===si}" title="${x.lab==='Open'?'Open chord':'Root on the '+x.lab}">${x.lab==='Open'?'Open':x.lab==='6th string'?'Root 6':'Root 5'}</button>`).join('')}</div><span class="tones">${c.tones}</span></div>`; }).join('');
   $('#kScales').innerHTML='<i>Scale</i>'+scs.map((x,i)=>`<button data-k="scale" data-v="${i}" aria-pressed="${i===K.scale}">${x.n}</button>`).join('');
   $('#kPos').innerHTML='<i>Position</i>'+['Whole neck','1','2','3','4','5'].map((x,i)=>`<button data-k="pos" data-v="${i}" aria-pressed="${i===K.pos}">${x}</button>`).join('');
+  document.querySelectorAll('#kCt button').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.v===K.ct)));
   document.querySelectorAll('#kLab button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===K.lab)));
   $('#kNeck').innerHTML=neckSvg();
-  const sc=scs[K.scale], sroot=K.root;
-  $('#kTip').innerHTML=`<b>${sroot} ${sc.n.toLowerCase().replace(' (gritty)','')}:</b> ${sc.iv.map(x=>I.nameOf((I.pc+x)%12)).join(' – ')}. `+sc.tip;
+  kTipDraw();
   $('#kBack').href='https://www.youtube.com/results?search_query='+enc(K.root.replace('♯','#').replace('♭','b')+' '+K.mode+' backing track');
   $('#kPlay').textContent=jam?'■ Stop':'▶ Jam';
   kSave();
 }
-function openKeys(root,mode){ if(root){ K.mode=mode; K.root=root; ksh={}; } show('keysView'); drawKeys(); }
+function openKeys(root,mode){ if(root){ K.mode=mode; K.root=root; ksh={}; kfocus=null; } show('keysView'); drawKeys(); }
 
 /* Sound: plucked strings and a simple drum beat, all made in the browser */
 function kAudio(){
@@ -896,7 +959,7 @@ function jamStart(){
       const f=prog.q?shapesFor(c.pc,prog.q)[0].f:c.shapes[Math.min(ksh[d]||0,c.shapes.length-1)].f;
       for(let b=0;b<4;b++){ strum(f,next+b*spb,b===0?.24:.15,false,bus); drum(b%2?'s':'k',next+b*spb,bus); drum('h',next+b*spb,bus); drum('h',next+(b+.5)*spb,bus); }
       strum(f,next+1.5*spb,.08,true,bus); strum(f,next+3.5*spb,.08,true,bus);
-      J.touts.push(setTimeout(()=>{ if(jam!==J) return; document.querySelectorAll('.kc').forEach(x=>x.classList.toggle('playing',+x.dataset.d===d)); },Math.max(0,(next-kac.currentTime)*1000)));
+      J.touts.push(setTimeout(()=>{ if(jam!==J) return; document.querySelectorAll('.kc').forEach(x=>x.classList.toggle('playing',+x.dataset.d===d)); if(K.ct&&(kfocus!==d||kfocusQ!==(prog.q||null))){ kfocus=d; kfocusQ=prog.q||null; $('#kNeck').innerHTML=neckSvg(); kTipDraw(); } },Math.max(0,(next-kac.currentTime)*1000)));
       next+=4*spb; bar++; } };
   tick(); J.timer=setInterval(tick,60); $('#kPlay').textContent='■ Stop';
 }
@@ -904,9 +967,9 @@ $('#kPlay').onclick=()=>{ jam?jamStop():jamStart(); };
 $('#kProg').addEventListener('change',e=>{ K.prog=+e.target.value; kSave(); if(jam) jamStart(); });
 $('#keysView').addEventListener('click',e=>{
   const b=e.target.closest('[data-k]'); if(!b) return; const k=b.dataset.k, v=b.dataset.v, was=!!jam;
-  if(k==='strum'){ const c=kChords()[+v]; strum(c.shapes[Math.min(ksh[v]||0,c.shapes.length-1)].f); return; }
+  if(k==='strum'){ const c=kChords()[+v]; strum(c.shapes[Math.min(ksh[v]||0,c.shapes.length-1)].f); if(!was){ kfocus=+v; kfocusQ=null; drawKeys(); } return; }
   if(k==='shape'){ const [d,i]=v.split(':'); ksh[d]=+i; drawKeys(); const c=kChords()[+d]; if(!was) strum(c.shapes[+i].f); return; }
-  if(k==='root'){ K.root=v; ksh={}; } else if(k==='mode'){ K.mode=v; ksh={}; K.scale=0; K.prog=0; } else if(k==='kind'){ K.kind=v; ksh={}; }
+  if(k==='root'){ K.root=v; ksh={}; kfocus=null; } else if(k==='mode'){ K.mode=v; ksh={}; K.scale=0; K.prog=0; kfocus=null; } else if(k==='kind'){ K.kind=v; ksh={}; } else if(k==='ct') K.ct=+v;
   else if(k==='scale') K.scale=+v; else if(k==='pos') K.pos=+v; else if(k==='lab') K.lab=v; else if(k==='bpm') K.bpm=Math.min(200,Math.max(50,K.bpm+ +v));
   drawKeys(); if(was&&['root','mode','kind','bpm'].includes(k)) jamStart();
 });
@@ -929,6 +992,7 @@ const views=['homeView','songsView','lessonView','keysView'];
 function show(v,arg){
   views.forEach(x=>$('#'+x).hidden=(x!==v));
   if(v!=='keysView') jamStop();
+  if(v!=='songsView'&&window.asReady) asStop();
   try{ history.replaceState(null,'','#'+(arg?v+':'+arg:v)); }catch(e){}
   if(v==='homeView') drawHome();
 }
@@ -1004,6 +1068,95 @@ hq.addEventListener('keydown',e=>{
 });
 hres.addEventListener('click',e=>{ const b=e.target.closest('.row'); if(b) openHq(parseInt(b.dataset.k,10)); });
 document.addEventListener('keydown',e=>{ if(!$('#homeView').hidden && e.key==='/' && document.activeElement!==hq){ e.preventDefault(); hq.focus(); } });
+
+/* ===== Video speed and loop (YouTube player controls) ===== */
+let ytp=null, ytReady=false, vRate=1, vA=null, vB=null, vLoop=false;
+const vFmt=t=>Math.floor(t/60)+':'+String(Math.floor(t%60)).padStart(2,'0');
+window.onYouTubeIframeAPIReady=()=>{ ytReady=true; vHook(); };
+(function(){ if(!/^https?:/.test(location.protocol)) return; const s=document.createElement('script'); s.src='https://www.youtube.com/iframe_api'; s.async=true; document.head.appendChild(s); })();
+function vHook(){
+  ytp=null; vA=vB=null; vLoop=false;
+  try{ const j=JSON.parse(store.get('pr.loop.'+key(cur()),'null')); if(j){ vA=j[0]; vB=j[1]; } }catch(e){}
+  drawV(); const f=$('#vid iframe'); if(!f||!ytReady||!window.YT||!YT.Player) return;
+  try{ const pl=new YT.Player(f,{events:{onReady:()=>{ ytp=pl; try{ pl.setPlaybackRate(vRate); }catch(e){} drawV(); }}}); }catch(e){}
+}
+function drawV(){
+  document.querySelectorAll('[data-vr]').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.vr===vRate)));
+  $('#vL').textContent=vLoop?'Loop on':'Loop off'; $('#vL').setAttribute('aria-pressed',String(vLoop));
+  $('#vAB').textContent=!$('#vid iframe')?'':!ytp?'Controls wake up when the video loads':(vA!=null?vFmt(vA):'start')+' → '+(vB!=null?vFmt(vB):'end');
+  $('#vX').hidden=vA==null&&vB==null;
+}
+function vSave(){ if(vA==null&&vB==null) store.del('pr.loop.'+key(cur())); else store.set('pr.loop.'+key(cur()),JSON.stringify([vA,vB])); }
+$('#vctl').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  if(b.dataset.vr){ vRate=+b.dataset.vr; if(ytp) try{ ytp.setPlaybackRate(vRate); }catch(e){} }
+  else if(b.id==='vA'&&ytp){ vA=Math.max(0,ytp.getCurrentTime()); if(vB!=null&&vB<=vA) vB=null; if(vB!=null) vLoop=true; vSave(); }
+  else if(b.id==='vB'&&ytp){ vB=ytp.getCurrentTime(); if(vA==null) vA=0; if(vB<=vA+.5){ vB=null; } else vLoop=true; vSave(); }
+  else if(b.id==='vL'){ vLoop=!vLoop&&vA!=null&&vB!=null; if(vLoop&&ytp){ ytp.seekTo(vA,true); try{ ytp.playVideo(); }catch(e){} } }
+  else if(b.id==='vX'){ vA=vB=null; vLoop=false; vSave(); }
+  drawV();
+});
+setInterval(()=>{ if(!ytp||!vLoop||vA==null||vB==null) return; try{ const t=ytp.getCurrentTime(); if(t>=vB||t<vA-1.5) ytp.seekTo(vA,true); }catch(e){} },150);
+window.vOK=true; vHook();
+
+/* ===== Tools: metronome and tuner ===== */
+const tp=$('#toolsP');
+document.addEventListener('click',e=>{ if(e.target.closest('[data-tools]')){ tp.hidden=!tp.hidden; if(tp.hidden){ metStop(); tunStop(); } else drawMet(); } });
+$('#tpX').onclick=()=>{ tp.hidden=true; metStop(); tunStop(); };
+let met=null, mBpm=Math.min(240,Math.max(40,parseInt(store.get('pr.metro','90'),10)||90)), taps=[];
+function drawMet(){ $('#mBpm').textContent=mBpm; $('#mGo').textContent=met?'■ Stop':'▶ Start'; store.set('pr.metro',String(mBpm)); }
+function mClick(t,acc){ const o=kac.createOscillator(), g=kac.createGain(); o.type='square'; o.frequency.value=acc?1760:1100; g.gain.setValueAtTime(acc?.5:.3,t); g.gain.exponentialRampToValueAtTime(.001,t+.05); o.connect(g); g.connect(kout); o.start(t); o.stop(t+.06); }
+function metStop(){ if(!met) return; clearInterval(met.timer); met=null; document.querySelectorAll('#mDots i').forEach(x=>x.classList.remove('on')); drawMet(); }
+function metStart(){ metStop(); kAudio(); let next=kac.currentTime+.08, beat=0; const M=met={timer:0};
+  const tick=()=>{ while(next<kac.currentTime+.15){ const b=beat%4; mClick(next,b===0); setTimeout(()=>{ if(met!==M) return; document.querySelectorAll('#mDots i').forEach((x,i)=>x.classList.toggle('on',i===b)); },Math.max(0,(next-kac.currentTime)*1000)); next+=60/mBpm; beat++; } };
+  tick(); M.timer=setInterval(tick,40); drawMet(); }
+$('#mGo').onclick=()=>{ met?metStop():metStart(); };
+$('#metro').addEventListener('click',e=>{ const b=e.target.closest('[data-mb]'); if(!b) return; mBpm=Math.min(240,Math.max(40,mBpm+ +b.dataset.mb)); drawMet(); });
+$('#mTap').onclick=()=>{ const n=performance.now(); taps=taps.filter(t=>n-t<2500); taps.push(n); if(taps.length>=2){ const d=(taps[taps.length-1]-taps[0])/(taps.length-1); mBpm=Math.min(240,Math.max(40,Math.round(60000/d))); drawMet(); } };
+/* Tuner: listens through the microphone and finds the pitch by autocorrelation */
+function pitchOf(buf,sr){
+  let n=buf.length, rms=0; for(let i=0;i<n;i++) rms+=buf[i]*buf[i]; if(Math.sqrt(rms/n)<.01) return -1;
+  const c=new Float32Array(n>>1); for(let l=0;l<c.length;l++){ let s=0; for(let j=0;j<n-l;j++) s+=buf[j]*buf[j+l]; c[l]=s; }
+  let d=0; while(d<c.length-2&&c[d]>c[d+1]) d++; let mx=-1, mp=-1; for(let i=d;i<c.length-1;i++) if(c[i]>mx){ mx=c[i]; mp=i; }
+  if(mp<1||mx<c[0]*.3) return -1; const x1=c[mp-1], x2=c[mp], x3=c[mp+1], a=(x1+x3-2*x2)/2, b=(x3-x1)/2; return sr/(a?mp-b/(2*a):mp);
+}
+let tun=null; const STR=[[40,'6th string'],[45,'5th string'],[50,'4th string'],[55,'3rd string'],[59,'2nd string'],[64,'1st string']];
+function tunStop(){ if(!tun) return; clearInterval(tun.timer); try{ tun.stream.getTracks().forEach(t=>t.stop()); tun.src.disconnect(); }catch(e){} tun=null; $('#tGo').textContent='Start tuner'; $('#tNote').textContent='–'; $('#tMsg').textContent='Uses your microphone.'; $('#tNeedle').style.left='50%'; }
+async function tunStart(){
+  try{ kAudio(); const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});
+    const src=kac.createMediaStreamSource(stream), an=kac.createAnalyser(); an.fftSize=4096; src.connect(an); const buf=new Float32Array(an.fftSize);
+    tun={stream,src,timer:setInterval(()=>{ an.getFloatTimeDomainData(buf); const f=pitchOf(buf,kac.sampleRate); if(f<60||f>1200) return;
+      const m=69+12*Math.log2(f/440), r=Math.round(m), cents=Math.round((m-r)*100), near=STR.find(s=>s[0]===r);
+      $('#tNote').textContent=SH[((r%12)+12)%12]; $('#tNeedle').style.left=(50+cents)+'%'; $('#tNeedle').classList.toggle('ok',Math.abs(cents)<=5);
+      $('#tMsg').textContent=(near?near[1]+' · ':'')+(Math.abs(cents)<=5?'In tune':cents<0?'Too low, tighten':'Too high, loosen'); },90)};
+    $('#tGo').textContent='Stop tuner'; $('#tMsg').textContent='Play one string.';
+  }catch(e){ $('#tMsg').textContent='Chrome could not use the microphone. Allow it in the address bar and try again.'; }
+}
+$('#tGo').onclick=()=>{ tun?tunStop():tunStart(); };
+
+/* ===== Tab auto-scroll. Speed is in lines per minute, so it stays the same at any text size. ===== */
+let asOn=false, asRaf=0, asPos=0, asLast=0, asT=0, asLpm=Math.min(240,Math.max(5,parseInt(store.get('pr.scroll','30'),10)||30));
+function asDraw(){ $('#asV').textContent=asLpm+' lines/min'; $('#asGo').textContent=asOn?'■ Scroll':'▶ Scroll'; $('#asGo').setAttribute('aria-pressed',String(asOn)); store.set('pr.scroll',String(asLpm)); }
+function asStop(){ asOn=false; cancelAnimationFrame(asRaf); asDraw(); }
+window.asReady=true;
+function asStep(now){
+  if(!asOn) return; const ta=$('#tab'), dt=Math.min(.1,(now-asT)/1000); asT=now;
+  if(Math.abs(ta.scrollTop-asLast)>2) asPos=ta.scrollTop;
+  asPos+=asLpm*fs*1.35/60*dt; ta.scrollTop=asPos; asLast=ta.scrollTop;
+  if(asPos>ta.scrollHeight-ta.clientHeight+1){ asStop(); return; }
+  asRaf=requestAnimationFrame(asStep);
+}
+function asStart(){ const ta=$('#tab'); if(!ta.value.trim()) return; if(ta.scrollTop>=ta.scrollHeight-ta.clientHeight-1) ta.scrollTop=0; ta.blur(); asOn=true; asPos=asLast=ta.scrollTop; asT=performance.now(); asDraw(); asRaf=requestAnimationFrame(asStep); }
+$('#asGo').onclick=()=>{ asOn?asStop():asStart(); };
+$('#asM').onclick=()=>{ asLpm=Math.max(5,asLpm-5); asDraw(); };
+$('#asP').onclick=()=>{ asLpm=Math.min(240,asLpm+5); asDraw(); };
+document.addEventListener('keydown',e=>{
+  if($('#songsView').hidden||dlg.open||/INPUT|SELECT|BUTTON/.test(document.activeElement.tagName)) return;
+  const inTa=document.activeElement.tagName==='TEXTAREA'; if(inTa&&!asOn) return;
+  if(e.key===' '){ e.preventDefault(); asOn?asStop():asStart(); }
+  else if(e.key==='+'||e.key==='='){ e.preventDefault(); $('#asP').click(); } else if(e.key==='-'){ e.preventDefault(); $('#asM').click(); }
+});
+asDraw();
 
 /* Start on the home screen */
 (function(){ const h=(location.hash||'').slice(1); if(h==='songsView'){ show('songsView'); } else show('homeView'); })();
